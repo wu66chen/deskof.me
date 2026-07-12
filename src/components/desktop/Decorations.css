@@ -1,6 +1,6 @@
-.decorations-layer { position:absolute;inset:0;pointer-events:none;z-index:25000; }
+.decorations-layer { position:fixed;inset:0;pointer-events:none;z-index:25000; }
 .decorations-layer>*{pointer-events:auto;}
-.decoration-item { position:absolute;cursor:grab;user-select:none;transition:filter .15s; }
+.decoration-item { position:fixed;cursor:grab;user-select:none;transition:filter .15s; }
 .decoration-item.editable:hover { filter:brightness(1.1) drop-shadow(0 0 6px rgba(255,105,180,0.4)); }
 .decoration-item.dragging { cursor:grabbing;z-index:99999!important; }
 .dec-handle { position:absolute;border:none;cursor:pointer;z-index:10; }

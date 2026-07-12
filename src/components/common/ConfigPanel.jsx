@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { loadSiteConfig, saveSiteConfig, defaultSiteConfig } from '../../config/siteConfig';
+import './ConfigPanel.css';
 
 const HINTS = {
   taskbarBg:'1920×40',taskbarStartIcon:'24×24',loginBg:'400×300',loginLogo:'64×64',
