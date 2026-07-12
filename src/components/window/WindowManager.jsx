@@ -7,10 +7,10 @@ import { canOpenWindow } from '../../utils/fileHelpers';
 export default function WindowManager({
   windows, isEditMode, selectedId, renamingId, renameValue,
   onRenameValueChange, onRenameConfirm, onRenameCancel, inputRef,
-  onSelect, onDoubleClickItem, onContextMenu, onDragStart,
+  onSelect, onDoubleClickItem, onContextMenu,
   onClose, onMinimize, onFocus, onUpdateContent, onMoveItem,
-  windowDefaults, windowDecorations, onSaveWindowDefault,
-  onDragOutOfFolder,
+  windowDefaults, windowDecorations, customAssets, onSaveWindowDefault,
+  onDragOutOfFolder, items,
 }) {
   const renderContent = (item) => {
     switch (item.type) {
@@ -20,12 +20,12 @@ export default function WindowManager({
           onRenameValueChange={onRenameValueChange} onRenameConfirm={onRenameConfirm}
           onRenameCancel={onRenameCancel} inputRef={inputRef} onSelect={onSelect}
           onDoubleClick={onDoubleClickItem} onContextMenu={onContextMenu}
-          onDragStart={onDragStart} onDragOutOfFolder={onDragOutOfFolder} />);
+          onDragOutOfFolder={onDragOutOfFolder} onMoveItem={onMoveItem} />);
       case 'image': return <ImageViewer item={item} isEditMode={isEditMode} onUpdateContent={onUpdateContent} />;
       case 'video': return <VideoPlayer item={item} isEditMode={isEditMode} onUpdateContent={onUpdateContent} />;
       case 'markdown': return <MarkdownViewer item={item} isEditMode={isEditMode} onUpdateContent={onUpdateContent} />;
       case 'link': return <LinkLauncher item={item} isEditMode={isEditMode} onUpdateContent={onUpdateContent} />;
-      default: return (<div className="viewer-placeholder" style={{padding:40}}><span>📄</span><p>{item.name}</p></div>);
+      default: return (<div style={{padding:40,textAlign:'center'}}><span>📄</span><p>{item.name}</p></div>);
     }
   };
 
@@ -33,12 +33,13 @@ export default function WindowManager({
     {windows.map(win => {
       if (!canOpenWindow(win.item.type)) return null;
       return (<Window key={win.id} id={win.id} title={win.item.name}
-        icon={iconEmoji[win.item.type] || '📄'} type={win.item.type}
+        icon={iconEmoji[win.item.type]||'📄'} type={win.item.type}
         isMinimized={win.minimized} onClose={onClose} onMinimize={onMinimize}
         onFocus={onFocus} zIndex={win.zIndex}
         defaultSize={windowDefaults?.[win.item.type]}
         onSaveDefault={onSaveWindowDefault}
-        windowDecoration={windowDecorations?.[win.item.type]}>
+        windowDecoration={windowDecorations?.[win.item.type]}
+        customAssets={customAssets}>
         {renderContent(win.item)}
       </Window>);
     })}

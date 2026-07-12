@@ -1,4 +1,4 @@
-import { useState, useCallback, memo } from 'react';
+import { useState, useCallback, useEffect, memo } from 'react';
 import Desktop from './components/desktop/Desktop';
 import WindowManager from './components/window/WindowManager';
 import Taskbar from './components/taskbar/Taskbar';
@@ -14,7 +14,6 @@ import { loadSiteConfig, saveSiteConfig } from './config/siteConfig';
 import { canOpenWindow } from './utils/fileHelpers';
 import './styles/theme.css';
 
-// 性能优化：memo 重型组件
 const MemoDesktop = memo(Desktop);
 const MemoWindowManager = memo(WindowManager);
 const MemoTaskbar = memo(Taskbar);
@@ -28,37 +27,43 @@ export default function App() {
   const rename = useRename(desktopData.renameItem);
   const [showSettings, setShowSettings] = useState(false);
 
+  // 全局阻止浏览器原生右键菜单
+  useEffect(() => {
+    const handler = (e) => e.preventDefault();
+    document.addEventListener('contextmenu', handler);
+    return () => document.removeEventListener('contextmenu', handler);
+  }, []);
+
   const handleDoubleClick = useCallback((item) => {
     if (canOpenWindow(item.type)) windowManager.openWindow(item);
   }, [windowManager]);
   const handleSelect = useCallback((id) => { desktopData.setSelectedId(id); if (rename.renamingId&&rename.renamingId!==id) rename.confirmRename(); }, [desktopData,rename]);
   const handleRenameStart = useCallback((id,name)=>rename.startRename(id,name),[rename]);
-  const handleChangeIcon = useCallback((id)=>{const u=prompt('输入图标URL（支持WebP/GIF，留空恢复）：');if(u!==null)desktopData.updateIcon(id,u||null)},[desktopData]);
+  const handleChangeIcon = useCallback((id)=>{const u=prompt('输入图标URL：');if(u!==null)desktopData.updateIcon(id,u||null)},[desktopData]);
   const handleAddItem = useCallback((item)=>desktopData.addItem({...item,position:{x:40+Math.random()*400,y:40+Math.random()*300}}),[desktopData]);
   const handleUpdateContent = useCallback((id,u)=>desktopData.updateItemContent(id,u),[desktopData]);
   const handleConfigChange = useCallback((c)=>setSiteConfig(c),[]);
 
-  const handleAddDecoration = useCallback((dec) => {
-    const nd = {...dec,id:`dec-${Date.now()}`,zIndex:dec.zIndex||20000};
-    const decs = [...(siteConfig.decorations||[]), nd];
-    const nc = {...siteConfig, decorations:decs};
-    setSiteConfig(nc); saveSiteConfig(nc);
-  }, [siteConfig]);
-  const handleUpdateDecoration = useCallback((id,u) => {
-    const decs = (siteConfig.decorations||[]).map(d=>d.id===id?{...d,...u}:d);
-    const nc = {...siteConfig, decorations:decs};
-    setSiteConfig(nc); saveSiteConfig(nc);
-  }, [siteConfig]);
-  const handleDeleteDecoration = useCallback((id) => {
-    const decs = (siteConfig.decorations||[]).filter(d=>d.id!==id);
-    const nc = {...siteConfig, decorations:decs};
-    setSiteConfig(nc); saveSiteConfig(nc);
-  }, [siteConfig]);
+  const handleAddDeco = useCallback((dec) => {
+    const nd={...dec,id:`dec-${Date.now()}`,zIndex:dec.zIndex||25000};
+    const nc={...siteConfig,decorations:[...(siteConfig.decorations||[]),nd]};
+    setSiteConfig(nc);saveSiteConfig(nc);
+  },[siteConfig]);
+  const handleUpdateDeco = useCallback((id,u) => {
+    const decs=(siteConfig.decorations||[]).map(d=>d.id===id?{...d,...u}:d);
+    const nc={...siteConfig,decorations:decs};
+    setSiteConfig(nc);saveSiteConfig(nc);
+  },[siteConfig]);
+  const handleDeleteDeco = useCallback((id) => {
+    const decs=(siteConfig.decorations||[]).filter(d=>d.id!==id);
+    const nc={...siteConfig,decorations:decs};
+    setSiteConfig(nc);saveSiteConfig(nc);
+  },[siteConfig]);
 
-  const handleSaveWindowDefault = useCallback((type,size) => {
-    const nc = {...siteConfig, windowDefaults:{...siteConfig.windowDefaults,[type]:size}};
-    setSiteConfig(nc); saveSiteConfig(nc);
-  }, [siteConfig]);
+  const handleSaveWinDefault = useCallback((type,size) => {
+    const nc={...siteConfig,windowDefaults:{...siteConfig.windowDefaults,[type]:size}};
+    setSiteConfig(nc);saveSiteConfig(nc);
+  },[siteConfig]);
 
   const handlePublish = useCallback(async (token, version) => {
     return await desktopData.publishToGitHub(token, version);
@@ -90,12 +95,10 @@ export default function App() {
       showContextMenu={contextMenu.showContextMenu} hideContextMenu={contextMenu.hideContextMenu}
       isAdmin={auth.isAdmin} onToggleEdit={handleToggleEdit} onOpenSettings={()=>setShowSettings(true)}
       decorations={siteConfig.decorations}
-      onUpdateDecoration={handleUpdateDecoration}
-      onDeleteDecoration={handleDeleteDecoration}
-      onAddDecoration={handleAddDecoration}
+      onUpdateDecoration={handleUpdateDeco} onDeleteDecoration={handleDeleteDeco}
+      onAddDecoration={handleAddDeco}
       onMoveItemIntoFolder={desktopData.moveItemIntoFolder}
-      iconSize={siteConfig.iconSize}
-      parallaxEnabled={siteConfig.parallaxEnabled!==false}
+      iconSize={siteConfig.iconSize} parallaxEnabled={siteConfig.parallaxEnabled!==false}
       parallaxStrength={siteConfig.parallaxStrength||8} />
 
     <MemoWindowManager windows={windowManager.windows} isEditMode={isEdit}
@@ -104,13 +107,18 @@ export default function App() {
       onRenameConfirm={rename.confirmRename} onRenameCancel={rename.cancelRename}
       inputRef={rename.inputRef} onSelect={handleSelect}
       onDoubleClickItem={handleDoubleClick} onContextMenu={contextMenu.showContextMenu}
-      onDragStart={()=>{}} onClose={windowManager.closeWindow}
-      onMinimize={windowManager.toggleMinimize} onFocus={windowManager.focusWindow}
-      onUpdateContent={handleUpdateContent} onMoveItem={desktopData.moveItem}
+      onClose={windowManager.closeWindow} onMinimize={windowManager.toggleMinimize}
+      onFocus={windowManager.focusWindow} onUpdateContent={handleUpdateContent}
+      onMoveItem={desktopData.moveItem}
+      onMoveItemOutOfFolder={desktopData.moveItemOutOfFolder}
+      onMoveItemIntoFolder={desktopData.moveItemIntoFolder}
+      onDragStartFromFolder={desktopData.moveItemOutOfFolder}
+      onAddItemToFolder={desktopData.moveItemIntoFolder}
       windowDefaults={siteConfig.windowDefaults}
       windowDecorations={siteConfig.windowDecorations}
-      onSaveWindowDefault={handleSaveWindowDefault}
-      onDragOutOfFolder={desktopData.moveItemOutOfFolder} />
+      customAssets={siteConfig.customAssets}
+      onSaveWindowDefault={handleSaveWinDefault}
+      items={desktopData.items} />
 
     {siteConfig.showTaskbar!==false && (
       <MemoTaskbar windows={windowManager.windows}
