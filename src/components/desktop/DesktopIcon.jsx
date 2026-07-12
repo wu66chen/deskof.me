@@ -11,52 +11,27 @@ export default function DesktopIcon({
   onRenameValueChange, onRenameConfirm, onRenameCancel, inputRef,
   onSelect, onDoubleClick, onContextMenu, onDragStart,
 }) {
-  const iconRef = useRef(null);
-  const isRenaming = renamingId === item.id;
   const displayName = stripEmoji(item.name);
-
-  const getIconContent = () => {
-    if (item.icon) return <img src={item.icon} alt="" className="desktop-icon-img" draggable={false} />;
-    return <span className="desktop-icon-emoji">{iconEmoji[item.type] || iconEmoji.unknown}</span>;
-  };
-
-  const handleDoubleClick = useCallback((e) => { e.stopPropagation(); onDoubleClick(item); }, [item, onDoubleClick]);
-
-  const handleMouseDown = useCallback((e) => {
-    if (e.button !== 0) return;
-    e.stopPropagation();
-    onSelect(item.id);
-    if (isEditMode) onDragStart(e, item);
-  }, [item, isEditMode, onSelect, onDragStart]);
-
-  const handleClick = useCallback((e) => { e.stopPropagation(); }, []);
-
-  // 右键：同时阻止 React synthetic 和 native 事件冒泡
-  const handleContextMenu = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.nativeEvent) e.nativeEvent.stopImmediatePropagation();
-    onContextMenu(e, item);
-  }, [item, onContextMenu]);
-
-  const handleKeyDown = useCallback((e) => {
-    if (e.key === 'Enter') onRenameConfirm();
-    if (e.key === 'Escape') onRenameCancel();
-  }, [onRenameConfirm, onRenameCancel]);
+  const isRenaming = renamingId === item.id;
 
   return (
-    <div ref={iconRef}
+    <div
       className={`desktop-icon ${item.size === 'large' ? 'icon-large' : ''} ${isSelected ? 'selected' : ''} ${isEditMode ? 'editable' : ''}`}
       style={{ left: item.position.x, top: item.position.y }}
-      onMouseDown={handleMouseDown} onClick={handleClick}
-      onDoubleClick={handleDoubleClick} onContextMenu={handleContextMenu}
+      onMouseDown={(e) => { if (e.button !== 0) return; e.stopPropagation(); onSelect(item.id); if (isEditMode) onDragStart(e, item); }}
+      onClick={(e) => e.stopPropagation()}
+      onDoubleClick={(e) => { e.stopPropagation(); onDoubleClick(item); }}
+      onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); onContextMenu(e, item); }}
       title={isEditMode ? `${displayName} (可拖拽)` : displayName}>
-      <div className="desktop-icon-image">{getIconContent()}</div>
+      <div className="desktop-icon-image">
+        {item.icon ? <img src={item.icon} alt="" className="desktop-icon-img" draggable={false} /> :
+         <span className="desktop-icon-emoji">{iconEmoji[item.type] || iconEmoji.unknown}</span>}
+      </div>
       <div className="desktop-icon-label">
         {isRenaming ? (
           <input ref={inputRef} className="rename-input" value={renameValue}
             onChange={e => onRenameValueChange(e.target.value)}
-            onBlur={onRenameConfirm} onKeyDown={handleKeyDown}
+            onBlur={onRenameConfirm} onKeyDown={e => { if (e.key==='Enter') onRenameConfirm(); if (e.key==='Escape') onRenameCancel(); }}
             onClick={e => e.stopPropagation()} />
         ) : (
           <span className={`icon-name ${isSelected ? 'name-selected' : ''}`}>{displayName}</span>
