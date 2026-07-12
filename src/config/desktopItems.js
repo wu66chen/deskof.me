@@ -132,8 +132,8 @@ export const defaultDesktopItems = [
     "type": "link",
     "icon": "https://pub.mini-tools.uk/1-day/37db78d2-c82a-4099-850c-a289f0283c73.jpg",
     "position": {
-      "x": 2126,
-      "y": 613
+      "x": 1939,
+      "y": 598
     },
     "url": "https://github.com/wu66chen"
   },
