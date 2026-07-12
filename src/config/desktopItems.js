@@ -5,8 +5,8 @@ export const defaultDesktopItems = [
     "type": "folder-large",
     "icon": null,
     "position": {
-      "x": 1360,
-      "y": 720
+      "x": 1508,
+      "y": 807
     },
     "size": "large",
     "children": [
@@ -130,10 +130,10 @@ export const defaultDesktopItems = [
     "id": "link-github",
     "name": "🔗 GitHub",
     "type": "link",
-    "icon": null,
+    "icon": "https://pub.mini-tools.uk/1-day/37db78d2-c82a-4099-850c-a289f0283c73.jpg",
     "position": {
-      "x": 960,
-      "y": 720
+      "x": 2126,
+      "y": 613
     },
     "url": "https://github.com/wu66chen"
   },
@@ -164,8 +164,8 @@ export const defaultDesktopItems = [
     "name": "新文件夹",
     "size": "large",
     "position": {
-      "x": 1563,
-      "y": 257
+      "x": 2072,
+      "y": 334
     },
     "id": "folder-large-1783854603219",
     "icon": null
@@ -175,8 +175,8 @@ export const defaultDesktopItems = [
     "name": "新文件夹",
     "size": "large",
     "position": {
-      "x": 1676,
-      "y": 256
+      "x": 1933,
+      "y": 167
     },
     "id": "folder-large-1783854703274",
     "icon": null
@@ -191,17 +191,22 @@ export const defaultDesktopItems = [
     },
     "id": "folder-1783854708067",
     "icon": null
+  },
+  {
+    "type": "link",
+    "name": "新链接",
+    "url": "https://",
+    "position": {
+      "x": 1873.3776540020554,
+      "y": 840.0734612975084
+    },
+    "id": "link-1783862029079",
+    "icon": null
   }
 ];
 
 export function loadDesktopItems() {
-  try {
-    const saved = localStorage.getItem('deskofme_desktopItems');
-    if (saved) { const p = JSON.parse(saved); if (Array.isArray(p) && p.length > 0) return p; }
-  } catch (e) {}
+  try { const s=localStorage.getItem('deskofme_desktopItems'); if(s){const p=JSON.parse(s);if(Array.isArray(p)&&p.length>0)return p;} } catch(e){}
   return JSON.parse(JSON.stringify(defaultDesktopItems));
 }
-
-export function saveDesktopItems(items) {
-  try { localStorage.setItem('deskofme_desktopItems', JSON.stringify(items)); return true; } catch (e) { return false; }
-}
+export function saveDesktopItems(items){try{localStorage.setItem('deskofme_desktopItems',JSON.stringify(items));return true}catch(e){return false}}
