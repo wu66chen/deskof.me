@@ -27,11 +27,18 @@ export default function App() {
   const rename = useRename(desktopData.renameItem);
   const [showSettings, setShowSettings] = useState(false);
 
-  // 全局阻止浏览器原生右键菜单
+  // URL 参数 ?admin 兜底触发登录
   useEffect(() => {
-    const handler = (e) => e.preventDefault();
-    document.addEventListener('contextmenu', handler);
-    return () => document.removeEventListener('contextmenu', handler);
+    if (new URLSearchParams(window.location.search).has('admin')) {
+      if (!auth.isAdmin && auth.isInitialized) auth.showLogin();
+    }
+  }, [auth.isInitialized, auth.isAdmin, auth.showLogin]);
+
+  // 全局阻止浏览器右键
+  useEffect(() => {
+    const h = (e) => e.preventDefault();
+    document.addEventListener('contextmenu', h);
+    return () => document.removeEventListener('contextmenu', h);
   }, []);
 
   const handleDoubleClick = useCallback((item) => {
@@ -51,26 +58,22 @@ export default function App() {
   },[siteConfig]);
   const handleUpdateDeco = useCallback((id,u) => {
     const decs=(siteConfig.decorations||[]).map(d=>d.id===id?{...d,...u}:d);
-    const nc={...siteConfig,decorations:decs};
-    setSiteConfig(nc);saveSiteConfig(nc);
+    const nc={...siteConfig,decorations:decs};setSiteConfig(nc);saveSiteConfig(nc);
   },[siteConfig]);
   const handleDeleteDeco = useCallback((id) => {
     const decs=(siteConfig.decorations||[]).filter(d=>d.id!==id);
-    const nc={...siteConfig,decorations:decs};
-    setSiteConfig(nc);saveSiteConfig(nc);
+    const nc={...siteConfig,decorations:decs};setSiteConfig(nc);saveSiteConfig(nc);
   },[siteConfig]);
-
   const handleSaveWinDefault = useCallback((type,size) => {
     const nc={...siteConfig,windowDefaults:{...siteConfig.windowDefaults,[type]:size}};
     setSiteConfig(nc);saveSiteConfig(nc);
   },[siteConfig]);
-
   const handlePublish = useCallback(async (token, version) => {
     return await desktopData.publishToGitHub(token, version);
   }, [desktopData]);
 
   const handleToggleEdit = useCallback(() => {
-    if (!auth.isAdmin) { auth.showLogin(); return; }
+    if (!auth.isAdmin) return;
     auth.toggleEditMode();
   }, [auth]);
 
@@ -112,8 +115,6 @@ export default function App() {
       onMoveItem={desktopData.moveItem}
       onMoveItemOutOfFolder={desktopData.moveItemOutOfFolder}
       onMoveItemIntoFolder={desktopData.moveItemIntoFolder}
-      onDragStartFromFolder={desktopData.moveItemOutOfFolder}
-      onAddItemToFolder={desktopData.moveItemIntoFolder}
       windowDefaults={siteConfig.windowDefaults}
       windowDecorations={siteConfig.windowDecorations}
       customAssets={siteConfig.customAssets}

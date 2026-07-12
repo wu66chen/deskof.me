@@ -25,8 +25,8 @@ export default function ContextMenu({
         case 'newLink': onAddItem({type:'link',name:'新链接',url:'https://'}); break;
         case 'toggleEdit': onToggleEdit(); break;
         case 'openSettings': onOpenSettings(); break;
-        case 'addSticker': {const u=prompt('贴纸/图片URL（支持WebP/GIF）：');if(u)onAddDecoration?.({type:'image',content:u,x:menu.x+20,y:menu.y-40,width:80,height:80});break;}
-        case 'addText': {const t=prompt('文字内容：');if(t)onAddDecoration?.({type:'text',content:t,x:menu.x+20,y:menu.y-40});break;}
+        case 'addSticker': {const u=prompt('贴纸URL：');if(u)onAddDecoration?.({type:'image',content:u,x:menu.x+20,y:menu.y-40,width:80,height:80});break;}
+        case 'addText': {const t=prompt('文字：');if(t)onAddDecoration?.({type:'text',content:t,x:menu.x+20,y:menu.y-40});break;}
       }
     }, 50);
   }, [onClose,onOpen,onRename,onDelete,onChangeIcon,onAddItem,onToggleEdit,onOpenSettings,onAddDecoration,menu]);
@@ -37,22 +37,23 @@ export default function ContextMenu({
     <div className="context-menu-overlay" onClick={onClose} onContextMenu={e=>{e.preventDefault();onClose();}}>
       <div className="context-menu win98-window" style={{left:x,top:y}} onClick={e=>e.stopPropagation()}>
         {menu.type==='desktop'&&(<>
-          <div className="menu-section-label">编辑</div>
-          <button className="menu-item" onClick={e=>{e.stopPropagation();act('toggleEdit');}}>{editMode?'✕ 退出编辑模式':(isAdmin?'✎ 进入编辑模式':'🔑 管理员登录')}</button>
-          {isAdmin&&editMode&&(<>
-            <div className="menu-separator"/><div className="menu-section-label">新建</div>
-            <button className="menu-item" onClick={e=>{e.stopPropagation();act('newFolder');}}>📁 文件夹</button>
-            <button className="menu-item" onClick={e=>{e.stopPropagation();act('newLargeFolder');}}>📂 大型文件夹</button>
-            <button className="menu-item" onClick={e=>{e.stopPropagation();act('newMarkdown');}}>📝 Markdown</button>
-            <button className="menu-item" onClick={e=>{e.stopPropagation();act('newImage');}}>🖼️ 图片</button>
-            <button className="menu-item" onClick={e=>{e.stopPropagation();act('newVideo');}}>🎬 视频</button>
-            <button className="menu-item" onClick={e=>{e.stopPropagation();act('newLink');}}>🔗 链接</button>
-            <div className="menu-separator"/><div className="menu-section-label">装饰</div>
-            <button className="menu-item" onClick={e=>{e.stopPropagation();act('addSticker');}}>🖼️ 贴纸</button>
-            <button className="menu-item" onClick={e=>{e.stopPropagation();act('addText');}}>📝 文字</button>
-            <div className="menu-separator"/>
+          {isAdmin && (<>
+            <button className="menu-item" onClick={e=>{e.stopPropagation();act('toggleEdit');}}>{editMode?'✕ 退出编辑模式':'✎ 进入编辑模式'}</button>
+            {editMode&&(<>
+              <div className="menu-separator"/><div className="menu-section-label">新建</div>
+              <button className="menu-item" onClick={e=>{e.stopPropagation();act('newFolder');}}>📁 文件夹</button>
+              <button className="menu-item" onClick={e=>{e.stopPropagation();act('newLargeFolder');}}>📂 大型文件夹</button>
+              <button className="menu-item" onClick={e=>{e.stopPropagation();act('newMarkdown');}}>📝 Markdown</button>
+              <button className="menu-item" onClick={e=>{e.stopPropagation();act('newImage');}}>🖼️ 图片</button>
+              <button className="menu-item" onClick={e=>{e.stopPropagation();act('newVideo');}}>🎬 视频</button>
+              <button className="menu-item" onClick={e=>{e.stopPropagation();act('newLink');}}>🔗 链接</button>
+              <div className="menu-separator"/><div className="menu-section-label">装饰</div>
+              <button className="menu-item" onClick={e=>{e.stopPropagation();act('addSticker');}}>🖼️ 贴纸</button>
+              <button className="menu-item" onClick={e=>{e.stopPropagation();act('addText');}}>📝 文字</button>
+              <div className="menu-separator"/>
+            </>)}
+            <button className="menu-item" onClick={e=>{e.stopPropagation();act('openSettings');}}>⚙️ 站点设置</button>
           </>)}
-          {isAdmin&&<button className="menu-item" onClick={e=>{e.stopPropagation();act('openSettings');}}>⚙️ 站点设置</button>}
         </>)}
         {menu.type==='icon'&&(<>
           <button className="menu-item" onClick={e=>{e.stopPropagation();act('open',menu.item);}}>📂 打开</button>

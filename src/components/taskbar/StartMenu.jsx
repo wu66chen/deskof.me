@@ -2,7 +2,7 @@ import './StartMenu.css';
 
 export default function StartMenu({
   isAdmin, editMode, onToggleEdit, onOpenSettings,
-  onLogout, onShowLogin, onClose, startMenuItems = [],
+  onLogout, onClose, startMenuItems = [],
 }) {
   const handleAction = (item) => {
     onClose();
@@ -12,12 +12,10 @@ export default function StartMenu({
         case 'toggleEdit': onToggleEdit(); break;
         case 'openSettings': onOpenSettings(); break;
         case 'logout': onLogout(); break;
-        case 'showLogin': onShowLogin(); break;
         case 'link': {
           let url = item.url || '';
           if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
-          window.open(url, '_blank');
-          break;
+          window.open(url, '_blank'); break;
         }
       }
     }, 50);
@@ -25,7 +23,7 @@ export default function StartMenu({
 
   return (
     <div className="start-menu-overlay" onClick={onClose}>
-      <div className="start-menu win98-window" onClick={(e) => e.stopPropagation()}>
+      <div className="start-menu win98-window" onClick={e => e.stopPropagation()}>
         <div className="start-menu-sidebar">
           <span className="start-menu-brand">deskof.me</span>
           <span className="start-menu-version">Y2K Edition</span>
@@ -36,7 +34,6 @@ export default function StartMenu({
             if (item.adminOnly && !isAdmin) return null;
             let label = item.label, icon = item.icon;
             if (item.id === 'edit' && editMode) { label = item.editLabel || item.label; icon = item.editIcon || item.icon; }
-            if (item.id === 'logout' && !isAdmin) { label = item.guestLabel || item.label; icon = item.guestIcon || item.icon; }
             return (
               <button key={item.id || i} className="start-menu-item" onClick={() => handleAction(item)}>
                 <span className="menu-item-icon">{icon}</span>
