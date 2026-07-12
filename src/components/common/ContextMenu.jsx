@@ -5,13 +5,12 @@ export default function ContextMenu({
   menu, isAdmin, editMode, onClose,
   onOpen, onRename, onDelete, onChangeIcon,
   onAddItem, onToggleEdit, onOpenSettings,
+  onAddDecoration,
 }) {
   if (!menu) return null;
 
   const handleAction = useCallback((action, data) => {
-    // 先关闭菜单，用 setTimeout 确保 React 事件循环完成
     onClose();
-    // 延迟执行操作
     setTimeout(() => {
       switch (action) {
         case 'open': onOpen(data); break;
@@ -26,28 +25,30 @@ export default function ContextMenu({
         case 'newLink': onAddItem({ type: 'link', name: '新链接', url: 'https://' }); break;
         case 'toggleEdit': onToggleEdit(); break;
         case 'openSettings': onOpenSettings(); break;
+        case 'addSticker': { const url = prompt('输入贴纸/图片 URL（支持 WebP/GIF）：'); if (url) onAddDecoration?.({ type: 'image', content: url, x: menu.x+20, y: menu.y-40, width: 80, height: 80 }); break; }
+        case 'addText': { const text = prompt('输入文字内容：'); if (text) onAddDecoration?.({ type: 'text', content: text, x: menu.x+20, y: menu.y-40 }); break; }
       }
     }, 50);
-  }, [onClose, onOpen, onRename, onDelete, onChangeIcon, onAddItem, onToggleEdit, onOpenSettings]);
+  }, [onClose, onOpen, onRename, onDelete, onChangeIcon, onAddItem, onToggleEdit, onOpenSettings, onAddDecoration, menu]);
 
   const isDesktop = menu.type === 'desktop';
   const isIcon = menu.type === 'icon';
+  const isDecoration = menu.type === 'decoration';
   const adjustedX = Math.min(menu.x, window.innerWidth - 200);
   const adjustedY = Math.min(menu.y, window.innerHeight - 400);
 
   return (
     <div className="context-menu-overlay" onClick={onClose} onContextMenu={e => { e.preventDefault(); onClose(); }}>
-      <div className="context-menu win98-window" style={{ left: adjustedX, top: adjustedY }}
-        onClick={e => e.stopPropagation()}>
+      <div className="context-menu win98-window" style={{ left: adjustedX, top: adjustedY }} onClick={e => e.stopPropagation()}>
         
         {isDesktop && (<>
-          <div className="menu-section-label">操作</div>
+          <div className="menu-section-label">编辑</div>
           <button className="menu-item" onClick={e => { e.stopPropagation(); handleAction('toggleEdit'); }}>
             {editMode ? '✕ 退出编辑模式' : (isAdmin ? '✎ 进入编辑模式' : '🔑 管理员登录')}
           </button>
-          <div className="menu-separator" />
           {isAdmin && editMode && (<>
-            <div className="menu-section-label">新建</div>
+            <div className="menu-separator" />
+            <div className="menu-section-label">新建文件</div>
             <button className="menu-item" onClick={e => { e.stopPropagation(); handleAction('newFolder'); }}>📁 新建文件夹</button>
             <button className="menu-item" onClick={e => { e.stopPropagation(); handleAction('newLargeFolder'); }}>📂 新建大型文件夹</button>
             <button className="menu-item" onClick={e => { e.stopPropagation(); handleAction('newMarkdown'); }}>📝 新建 Markdown</button>
@@ -55,21 +56,29 @@ export default function ContextMenu({
             <button className="menu-item" onClick={e => { e.stopPropagation(); handleAction('newVideo'); }}>🎬 新建视频</button>
             <button className="menu-item" onClick={e => { e.stopPropagation(); handleAction('newLink'); }}>🔗 新建链接</button>
             <div className="menu-separator" />
+            <div className="menu-section-label">装饰</div>
+            <button className="menu-item" onClick={e => { e.stopPropagation(); handleAction('addSticker'); }}>🖼️ 添加贴纸/图片</button>
+            <button className="menu-item" onClick={e => { e.stopPropagation(); handleAction('addText'); }}>📝 添加文字</button>
+            <div className="menu-separator" />
           </>)}
-          {isAdmin && (
-            <button className="menu-item" onClick={e => { e.stopPropagation(); handleAction('openSettings'); }}>⚙️ 站点设置</button>
-          )}
+          {isAdmin && (<button className="menu-item" onClick={e => { e.stopPropagation(); handleAction('openSettings'); }}>⚙️ 站点设置</button>)}
         </>)}
 
         {isIcon && (<>
           <button className="menu-item" onClick={e => { e.stopPropagation(); handleAction('open', menu.item); }}>📂 打开</button>
-          <div className="menu-separator" />
           {isAdmin && editMode && (<>
+            <div className="menu-separator" />
             <button className="menu-item" onClick={e => { e.stopPropagation(); handleAction('rename', { id: menu.itemId, name: menu.item.name }); }}>✏️ 重命名</button>
             <button className="menu-item" onClick={e => { e.stopPropagation(); handleAction('changeIcon', { id: menu.itemId }); }}>🎨 更换图标</button>
             <div className="menu-separator" />
             <button className="menu-item menu-item-danger" onClick={e => { e.stopPropagation(); handleAction('delete', { id: menu.itemId }); }}>🗑️ 删除</button>
           </>)}
+        </>)}
+
+        {isDecoration && isAdmin && editMode && (<>
+          <div className="menu-section-label">装饰</div>
+          <button className="menu-item" onClick={e => { e.stopPropagation(); handleAction('addSticker'); }}>🖼️ 添加贴纸</button>
+          <button className="menu-item" onClick={e => { e.stopPropagation(); handleAction('addText'); }}>📝 添加文字</button>
         </>)}
       </div>
     </div>

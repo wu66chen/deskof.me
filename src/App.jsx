@@ -10,7 +10,7 @@ import { useContextMenu } from './hooks/useContextMenu';
 import { useWindowManager } from './hooks/useWindowManager';
 import { useDesktopData } from './hooks/useDesktopData';
 import { useRename } from './hooks/useRename';
-import { loadSiteConfig } from './config/siteConfig';
+import { loadSiteConfig, saveSiteConfig } from './config/siteConfig';
 import { canOpenWindow } from './utils/fileHelpers';
 import './styles/theme.css';
 
@@ -35,49 +35,80 @@ export default function App() {
   const handleRenameStart = useCallback((id, name) => rename.startRename(id, name), [rename]);
   
   const handleChangeIcon = useCallback((id) => {
-    const url = prompt('输入新图标的图片 URL（支持 WebP/GIF/PNG，留空恢复默认）：');
+    const url = prompt('输入新图标 URL（支持 WebP/GIF，留空恢复默认）：');
     if (url !== null) desktopData.updateIcon(id, url || null);
   }, [desktopData]);
 
   const handleAddItem = useCallback((item) => {
-    desktopData.addItem({ ...item, position: { x: 40 + Math.random()*400, y: 40 + Math.random()*300 } });
+    desktopData.addItem({ ...item, position: { x: 40+Math.random()*400, y: 40+Math.random()*300 } });
   }, [desktopData]);
 
   const handleUpdateContent = useCallback((id, updates) => {
     desktopData.updateItemContent(id, updates);
   }, [desktopData]);
 
-  const handleConfigChange = useCallback((newConfig) => setSiteConfig(newConfig), []);
+  const handleConfigChange = useCallback((newConfig) => {
+    setSiteConfig(newConfig);
+  }, []);
 
-  // 编辑模式切换
+  // 装饰管理
+  const handleAddDecoration = useCallback((dec) => {
+    const newDec = { ...dec, id: `dec-${Date.now()}`, zIndex: 5 };
+    const decs = [...(siteConfig.decorations || []), newDec];
+    const newConfig = { ...siteConfig, decorations: decs };
+    setSiteConfig(newConfig);
+    saveSiteConfig(newConfig);
+  }, [siteConfig]);
+
+  const handleUpdateDecoration = useCallback((id, updates) => {
+    const decs = (siteConfig.decorations || []).map(d => d.id === id ? { ...d, ...updates } : d);
+    const newConfig = { ...siteConfig, decorations: decs };
+    setSiteConfig(newConfig);
+    saveSiteConfig(newConfig);
+  }, [siteConfig]);
+
+  const handleDeleteDecoration = useCallback((id) => {
+    const decs = (siteConfig.decorations || []).filter(d => d.id !== id);
+    const newConfig = { ...siteConfig, decorations: decs };
+    setSiteConfig(newConfig);
+    saveSiteConfig(newConfig);
+  }, [siteConfig]);
+
+  // 保存窗口默认大小
+  const handleSaveWindowDefault = useCallback((type, size) => {
+    const newConfig = { ...siteConfig, windowDefaults: { ...siteConfig.windowDefaults, [type]: size } };
+    setSiteConfig(newConfig);
+    saveSiteConfig(newConfig);
+  }, [siteConfig]);
+
+  // 发布
+  const handlePublish = useCallback(async (token) => {
+    return await desktopData.publishToGitHub(token);
+  }, [desktopData]);
+
+  // 编辑模式
   const handleToggleEdit = useCallback(() => {
     if (!auth.isAdmin) { auth.showLogin(); return; }
     auth.toggleEditMode();
   }, [auth]);
 
-  // ===== 渲染 =====
+  const isEditMode = auth.isAdmin && auth.editMode;
+
   if (!auth.isInitialized) return null;
 
-  // 主动触发的注册弹窗（仅当此浏览器无管理员时）
   if (auth.needsSetup) {
     return (<><CustomCursor /><SetupScreen onSetup={auth.setupAdmin} onCancel={auth.hideSetup} /></>);
   }
 
-  // 主动触发的登录弹窗
   if (auth.needsLogin) {
-    return (<>
-      <CustomCursor />
-      <LoginScreen onLogin={auth.login} onCancel={auth.hideLogin}
-        onSetup={() => { auth.hideLogin(); auth.showSetup(); }}
-        adminExists={auth.adminExists} />
-    </>);
+    return (<><CustomCursor /><LoginScreen onLogin={auth.login} onCancel={auth.hideLogin}
+      onSetup={() => { auth.hideLogin(); auth.showSetup(); }} adminExists={auth.adminExists} /></>);
   }
 
-  // 主桌面（所有用户都走这里）
   return (<>
     <CustomCursor />
     <Desktop items={desktopData.items} wallpaper={siteConfig.wallpaper}
-      isEditMode={auth.isAdmin && auth.editMode}
+      isEditMode={isEditMode}
       selectedId={desktopData.selectedId}
       renamingId={rename.renamingId} renameValue={rename.renameValue}
       onRenameValueChange={rename.setRenameValue}
@@ -90,10 +121,15 @@ export default function App() {
       showContextMenu={contextMenu.showContextMenu}
       hideContextMenu={contextMenu.hideContextMenu}
       isAdmin={auth.isAdmin} onToggleEdit={handleToggleEdit}
-      onOpenSettings={() => setShowSettings(true)} />
+      onOpenSettings={() => setShowSettings(true)}
+      decorations={siteConfig.decorations}
+      onUpdateDecoration={handleUpdateDecoration}
+      onDeleteDecoration={handleDeleteDecoration}
+      onAddDecoration={handleAddDecoration}
+      onMoveItemIntoFolder={desktopData.moveItemIntoFolder} />
 
     <WindowManager windows={windowManager.windows}
-      isEditMode={auth.isAdmin && auth.editMode}
+      isEditMode={isEditMode}
       selectedId={desktopData.selectedId}
       renamingId={rename.renamingId} renameValue={rename.renameValue}
       onRenameValueChange={rename.setRenameValue}
@@ -103,7 +139,11 @@ export default function App() {
       onContextMenu={contextMenu.showContextMenu} onDragStart={() => {}}
       onClose={windowManager.closeWindow} onMinimize={windowManager.toggleMinimize}
       onFocus={windowManager.focusWindow} onUpdateContent={handleUpdateContent}
-      onMoveItem={desktopData.moveItem} />
+      onMoveItem={desktopData.moveItem}
+      windowDefaults={siteConfig.windowDefaults}
+      windowDecorations={siteConfig.windowDecorations}
+      onSaveWindowDefault={handleSaveWindowDefault}
+      onDragOutOfFolder={desktopData.moveItemOutOfFolder} />
 
     {siteConfig.showTaskbar !== false && (
       <Taskbar windows={windowManager.windows}
@@ -117,7 +157,8 @@ export default function App() {
 
     {showSettings && (
       <ConfigPanel onClose={() => setShowSettings(false)}
-        onConfigChange={handleConfigChange} />
+        onConfigChange={handleConfigChange}
+        onPublish={handlePublish} />
     )}
   </>);
 }

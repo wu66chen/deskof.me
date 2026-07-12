@@ -9,6 +9,8 @@ export default function WindowManager({
   onRenameValueChange, onRenameConfirm, onRenameCancel, inputRef,
   onSelect, onDoubleClickItem, onContextMenu, onDragStart,
   onClose, onMinimize, onFocus, onUpdateContent, onMoveItem,
+  windowDefaults, windowDecorations, onSaveWindowDefault,
+  onDragOutOfFolder,
 }) {
   const renderContent = (item) => {
     switch (item.type) {
@@ -18,7 +20,7 @@ export default function WindowManager({
           onRenameValueChange={onRenameValueChange} onRenameConfirm={onRenameConfirm}
           onRenameCancel={onRenameCancel} inputRef={inputRef} onSelect={onSelect}
           onDoubleClick={onDoubleClickItem} onContextMenu={onContextMenu}
-          onDragStart={onDragStart} onMoveItem={onMoveItem} />);
+          onDragStart={onDragStart} onDragOutOfFolder={onDragOutOfFolder} />);
       case 'image': return <ImageViewer item={item} isEditMode={isEditMode} onUpdateContent={onUpdateContent} />;
       case 'video': return <VideoPlayer item={item} isEditMode={isEditMode} onUpdateContent={onUpdateContent} />;
       case 'markdown': return <MarkdownViewer item={item} isEditMode={isEditMode} onUpdateContent={onUpdateContent} />;
@@ -33,7 +35,10 @@ export default function WindowManager({
       return (<Window key={win.id} id={win.id} title={win.item.name}
         icon={iconEmoji[win.item.type] || '📄'} type={win.item.type}
         isMinimized={win.minimized} onClose={onClose} onMinimize={onMinimize}
-        onFocus={onFocus} zIndex={win.zIndex}>
+        onFocus={onFocus} zIndex={win.zIndex}
+        defaultSize={windowDefaults?.[win.item.type]}
+        onSaveDefault={onSaveWindowDefault}
+        windowDecoration={windowDecorations?.[win.item.type]}>
         {renderContent(win.item)}
       </Window>);
     })}

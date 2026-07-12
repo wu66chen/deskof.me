@@ -1,0 +1,20 @@
+.decorations-layer {
+  position: absolute; inset: 0; pointer-events: none; z-index: 5;
+}
+.decorations-layer > * { pointer-events: auto; }
+.decoration-item {
+  position: absolute; cursor: grab; user-select: none;
+  transition: filter 0.15s;
+}
+.decoration-item.editable { cursor: grab; }
+.decoration-item.editable:hover { filter: brightness(1.1) drop-shadow(0 0 4px rgba(255,105,180,0.5)); }
+.decoration-item.dragging { cursor: grabbing; filter: brightness(1.2); z-index: 100 !important; }
+.decoration-text {
+  padding: 4px 8px; background: rgba(255,255,255,0.7); border-radius: 4px;
+  white-space: nowrap;
+}
+.dec-edit-handle {
+  position: absolute; top: -4px; right: -4px;
+  width: 10px; height: 10px; background: var(--y2k-orange);
+  border-radius: 50%; border: 1px solid white;
+}
