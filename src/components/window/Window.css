@@ -41,6 +41,7 @@
 
 /* 缩放手柄 */
 .resize-handle { position: absolute; z-index: 10; }
+.resize-handle:hover { background: rgba(0,0,128,0.15); }
 .resize-n  { top: 0; left: 8px; right: 8px; height: 5px; cursor: n-resize; }
 .resize-s  { bottom: 0; left: 8px; right: 8px; height: 5px; cursor: s-resize; }
 .resize-e  { right: 0; top: 8px; bottom: 8px; width: 5px; cursor: e-resize; }

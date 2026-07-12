@@ -7,7 +7,7 @@
 
 .cursor-icon {
   display: block;
-  font-size: 28px;
+  font-size: 32px;
   line-height: 1;
   filter: drop-shadow(2px 2px 0 rgba(0,0,0,0.3));
   transition: transform 0.1s ease;
