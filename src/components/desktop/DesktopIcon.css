@@ -1,33 +1,21 @@
 /* DesktopIcon.css — Y2K 桌面图标 */
 .desktop-icon {
   position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display: flex; flex-direction: column; align-items: center;
   width: var(--icon-size);
-  padding: 6px 4px 8px;
-  border-radius: 4px;
+  padding: 6px 4px 8px; border-radius: 4px;
   cursor: none;
   transition: transform 0.12s ease, background 0.12s ease;
   z-index: var(--z-icon);
 }
-.desktop-icon:hover {
-  background: rgba(255, 255, 255, 0.4);
-  transform: scale(1.08);
-}
-.desktop-icon.selected {
-  background: rgba(0, 0, 128, 0.15);
-  outline: 1px dotted var(--y2k-blue);
-  outline-offset: -2px;
-}
-.desktop-icon.editable:hover {
-  outline: 2px dashed var(--y2k-orange);
-  outline-offset: 2px;
-  border-radius: 6px;
-}
-/* 大图标：明显更大 */
+.desktop-icon:hover { background: rgba(255,255,255,0.4); transform: scale(1.08); }
+.desktop-icon.selected { background: rgba(0,0,128,0.15); outline: 1px dotted var(--y2k-blue); outline-offset: -2px; }
+.desktop-icon.editable:hover { outline: 2px dashed var(--y2k-orange); outline-offset: 2px; border-radius: 6px; }
+
+/* 大图标：明显大很多 */
 .desktop-icon.icon-large {
   width: var(--icon-size-large);
+  padding: 10px 6px 12px;
 }
 .desktop-icon-image {
   width: 48px; height: 48px;
@@ -36,29 +24,26 @@
   filter: drop-shadow(var(--shadow-icon));
 }
 .icon-large .desktop-icon-image {
-  width: 88px; height: 88px;
+  width: 96px; height: 96px;
 }
 .desktop-icon-emoji {
-  font-size: 40px; line-height: 1;
+  font-size: 42px; line-height: 1;
 }
 .icon-large .desktop-icon-emoji {
-  font-size: 72px;
+  font-size: 80px;
 }
 .desktop-icon-img {
-  width: 100%; height: 100%;
-  object-fit: contain;
+  width: 100%; height: 100%; object-fit: contain;
   image-rendering: pixelated;
 }
-.desktop-icon-label {
-  text-align: center; max-width: 100%; word-break: break-word;
-}
+.desktop-icon-label { text-align: center; max-width: 100%; word-break: break-word; }
 .icon-name {
   font-family: var(--hand-font); font-size: 12px; color: #222;
   text-shadow: 1px 1px 0 rgba(255,255,255,0.8); line-height: 1.3;
   padding: 1px 4px; border-radius: 2px;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
-.icon-large .icon-name { font-size: 14px; }
+.icon-large .icon-name { font-size: 15px; font-weight: bold; }
 .name-selected { background: var(--y2k-blue); color: white; text-shadow: none; }
 .rename-input {
   font-family: var(--hand-font); font-size: 12px; text-align: center;
