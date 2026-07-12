@@ -1,0 +1,217 @@
+/* ContentViewers.css */
+
+.viewer-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.viewer-toolbar {
+  display: flex;
+  gap: 6px;
+  padding: 6px 8px;
+  background: #F0F0F0;
+  border-bottom: 1px solid #ddd;
+  flex-wrap: wrap;
+}
+
+.viewer-edit-btn, .viewer-save-btn {
+  padding: 3px 10px;
+  border: 2px solid;
+  border-color: var(--win-border-light) var(--win-border-dark) var(--win-border-dark) var(--win-border-light);
+  background: var(--win-bg);
+  font-family: var(--hand-font);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.viewer-save-btn {
+  background: #C0E0FF;
+  font-weight: bold;
+}
+
+.viewer-edit-row {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.viewer-input {
+  flex: 1;
+  padding: 4px 8px;
+  border: 2px solid;
+  border-color: var(--win-border-dark) var(--win-border-light) var(--win-border-light) var(--win-border-dark);
+  font-family: var(--hand-font);
+  font-size: 13px;
+}
+
+.viewer-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  padding: 16px;
+}
+
+/* 图片 — 拍立得风格 */
+.viewer-image {
+  background: #F5F0E8;
+}
+
+.polaroid-frame {
+  background: white;
+  padding: 12px 12px 40px;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+  max-width: 100%;
+  position: relative;
+  transform: rotate(-1deg);
+}
+
+.polaroid-img {
+  max-width: 100%;
+  max-height: 50vh;
+  object-fit: contain;
+  display: block;
+}
+
+.polaroid-caption {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: var(--note-font);
+  font-size: 14px;
+  color: #666;
+}
+
+.tape-piece {
+  position: absolute;
+  width: 40px;
+  height: 16px;
+  background: var(--tape-color);
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.tape-tl { top: -8px; left: 20px; transform: rotate(-5deg); }
+.tape-tr { top: -8px; right: 20px; transform: rotate(3deg); }
+
+.viewer-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #999;
+}
+
+.viewer-placeholder span {
+  font-size: 64px;
+  opacity: 0.4;
+}
+
+.hint {
+  font-size: 12px;
+  color: #bbb;
+}
+
+/* 视频 */
+.video-wrapper {
+  max-width: 100%;
+}
+
+.viewer-video-el {
+  max-width: 100%;
+  max-height: 50vh;
+  border: 3px solid #333;
+}
+
+/* Markdown */
+.viewer-markdown {
+  padding: 16px 20px;
+  background: #FFFEF9;
+}
+
+.markdown-editor {
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+  border: 2px dashed var(--y2k-purple);
+  padding: 12px;
+  font-family: var(--hand-font);
+  font-size: 14px;
+  line-height: 1.6;
+  resize: none;
+  background: #FFFEF9;
+}
+
+.markdown-preview {
+  font-family: var(--hand-font);
+  font-size: 14px;
+  line-height: 1.8;
+  color: #333;
+  max-width: 600px;
+}
+
+.markdown-preview h1 { font-size: 20px; margin: 12px 0 8px; color: var(--y2k-blue); }
+.markdown-preview h2 { font-size: 16px; margin: 10px 0 6px; color: var(--y2k-purple); }
+.markdown-preview h3 { font-size: 14px; margin: 8px 0 4px; }
+.markdown-preview blockquote {
+  border-left: 3px solid var(--y2k-pink);
+  padding-left: 12px;
+  color: #666;
+  margin: 8px 0;
+}
+.markdown-preview pre {
+  background: #f5f5f5;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  overflow-x: auto;
+}
+.markdown-preview code {
+  background: #f0f0f0;
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-size: 12px;
+}
+.markdown-preview li { margin-left: 20px; }
+
+/* 链接 */
+.viewer-link {
+  padding: 24px;
+}
+
+.link-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px;
+  background: white;
+  border: 2px dashed var(--y2k-cyan);
+  border-radius: 8px;
+  max-width: 400px;
+}
+
+.link-icon { font-size: 48px; }
+.link-name { font-family: var(--hand-font); font-size: 16px; font-weight: bold; }
+.link-url { font-family: var(--pixel-font); font-size: 8px; color: #999; word-break: break-all; }
+
+.link-open-btn {
+  padding: 8px 24px;
+  background: var(--titlebar-bg);
+  color: white;
+  text-decoration: none;
+  font-family: var(--pixel-font);
+  font-size: 10px;
+  border: 2px solid;
+  border-color: var(--win-border-light) var(--win-border-dark) var(--win-border-dark) var(--win-border-light);
+  cursor: pointer;
+}
+
+.link-open-btn:hover {
+  filter: brightness(1.2);
+}

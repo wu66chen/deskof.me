@@ -1,0 +1,79 @@
+/* StartMenu.css */
+
+.start-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+}
+
+.start-menu {
+  position: fixed;
+  bottom: calc(var(--taskbar-height) + 4px);
+  left: 4px;
+  display: flex;
+  min-width: 220px;
+  animation: windowOpen 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.start-menu-sidebar {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  padding: 12px 6px;
+  background: var(--titlebar-bg);
+  color: white;
+  font-family: var(--pixel-font);
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.start-menu-brand {
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+
+.start-menu-version {
+  font-size: 6px;
+  opacity: 0.7;
+  margin-top: auto;
+}
+
+.start-menu-items {
+  padding: 8px 4px;
+  min-width: 160px;
+}
+
+.start-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 14px;
+  border: none;
+  background: none;
+  text-align: left;
+  font-family: var(--hand-font);
+  font-size: 14px;
+  color: #222;
+  cursor: pointer;
+}
+
+.start-menu-item:hover {
+  background: var(--y2k-blue);
+  color: white;
+}
+
+.menu-item-icon {
+  font-size: 18px;
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.start-menu-separator {
+  height: 1px;
+  background: var(--win-border-dark);
+  margin: 4px 8px;
+  border-bottom: 1px solid var(--win-border-light);
+}

@@ -1,0 +1,118 @@
+/* Taskbar.css */
+
+.taskbar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: var(--taskbar-height);
+  background: var(--win-bg);
+  border-top: 2px solid var(--win-border-light);
+  box-shadow: 0 -1px 0 var(--win-border-dark);
+  display: flex;
+  align-items: center;
+  padding: 3px 4px;
+  gap: 3px;
+  z-index: 10000;
+  font-family: var(--pixel-font);
+  font-size: 8px;
+}
+
+.taskbar-start-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  height: 30px;
+  border: 2px solid;
+  border-color: var(--win-border-light) var(--win-border-dark) var(--win-border-dark) var(--win-border-light);
+  background: var(--win-bg);
+  cursor: pointer;
+  font-family: var(--pixel-font);
+  font-size: 8px;
+  font-weight: bold;
+  box-shadow: inset 1px 1px 0 white;
+  white-space: nowrap;
+}
+
+.taskbar-start-btn.active {
+  border-color: var(--win-border-dark) var(--win-border-light) var(--win-border-light) var(--win-border-dark);
+  box-shadow: none;
+  padding: 3px 7px 1px 9px;
+}
+
+.start-icon { font-size: 14px; }
+.start-text { letter-spacing: 1px; }
+
+.taskbar-divider {
+  width: 2px;
+  height: 26px;
+  background: var(--win-border-dark);
+  border-right: 1px solid var(--win-border-light);
+  margin: 0 2px;
+}
+
+.taskbar-windows {
+  flex: 1;
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  min-width: 0;
+}
+
+.taskbar-window-btn {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 10px;
+  height: 26px;
+  min-width: 100px;
+  max-width: 180px;
+  border: 2px solid;
+  border-color: var(--win-border-light) var(--win-border-dark) var(--win-border-dark) var(--win-border-light);
+  background: var(--win-bg);
+  cursor: pointer;
+  font-family: var(--hand-font);
+  font-size: 11px;
+  box-shadow: inset 1px 1px 0 white;
+  overflow: hidden;
+}
+
+.taskbar-window-btn.minimized {
+  border-color: var(--win-border-dark) var(--win-border-light) var(--win-border-light) var(--win-border-dark);
+  box-shadow: none;
+}
+
+.taskbar-win-icon { font-size: 12px; flex-shrink: 0; }
+.taskbar-win-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.taskbar-tray {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px;
+  margin-left: auto;
+  height: 28px;
+  border: 2px solid;
+  border-color: var(--win-border-dark) var(--win-border-light) var(--win-border-light) var(--win-border-dark);
+  background: var(--win-bg);
+  box-shadow: inset 1px 1px 0 white;
+}
+
+.tray-item {
+  display: flex;
+  align-items: center;
+}
+
+.admin-indicator {
+  font-size: 12px;
+  margin-right: 2px;
+}
+
+.time-text {
+  font-family: var(--pixel-font);
+  font-size: 8px;
+  letter-spacing: 1px;
+}

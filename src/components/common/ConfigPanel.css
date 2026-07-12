@@ -1,0 +1,134 @@
+/* ConfigPanel.css */
+
+.config-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 20000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+}
+
+.config-panel {
+  width: 480px;
+  max-width: 90vw;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  animation: windowOpen 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.config-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  background: var(--titlebar-bg);
+  color: white;
+}
+
+.config-title {
+  font-family: var(--pixel-font);
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+.config-tabs {
+  display: flex;
+  background: #E8E8E8;
+  border-bottom: 1px solid var(--win-border-dark);
+}
+
+.config-tab {
+  padding: 6px 16px;
+  border: none;
+  background: none;
+  font-family: var(--hand-font);
+  font-size: 13px;
+  cursor: pointer;
+  border-right: 1px solid #ddd;
+}
+
+.config-tab.active {
+  background: white;
+  font-weight: bold;
+  border-bottom: 2px solid var(--y2k-blue);
+}
+
+.config-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  background: white;
+}
+
+.config-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.config-section-desc {
+  font-family: var(--hand-font);
+  font-size: 12px;
+  color: #999;
+}
+
+.config-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.config-field label {
+  font-family: var(--hand-font);
+  font-size: 13px;
+  font-weight: bold;
+  color: #444;
+}
+
+.field-hint {
+  font-family: var(--hand-font);
+  font-size: 11px;
+  color: #999;
+}
+
+.config-footer {
+  display: flex;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #F0F0F0;
+  border-top: 1px solid #ddd;
+  justify-content: flex-end;
+}
+
+.config-footer .auth-btn {
+  width: auto;
+  padding: 6px 20px;
+  font-size: 13px;
+}
+
+.config-about {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.config-about h3 {
+  font-family: var(--pixel-font);
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.config-about p {
+  font-family: var(--hand-font);
+  font-size: 14px;
+  color: #666;
+}
+
+.about-links {
+  margin-top: 16px;
+  font-size: 12px;
+  color: #999;
+}

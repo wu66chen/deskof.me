@@ -1,0 +1,32 @@
+.custom-cursor {
+  position: fixed;
+  pointer-events: none;
+  z-index: var(--z-cursor);
+  transition: transform 0.05s ease;
+  mix-blend-mode: normal;
+}
+
+.cursor-icon {
+  display: block;
+  font-size: 20px;
+  line-height: 1;
+  filter: drop-shadow(1px 1px 0 rgba(0,0,0,0.3));
+  transition: transform 0.1s ease;
+}
+
+.cursor-icon.state-pointer {
+  transform: scale(1.2) rotate(-10deg);
+  animation: iconBounce 0.3s ease;
+}
+
+.cursor-icon.state-grabbing {
+  transform: scale(1.1);
+}
+
+.ink-particle {
+  position: fixed;
+  pointer-events: none;
+  z-index: calc(var(--z-cursor) - 1);
+  border-radius: 50%;
+  animation: inkSplatter 0.6s ease-out forwards;
+}

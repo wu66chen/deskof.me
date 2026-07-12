@@ -1,0 +1,170 @@
+/* ============================================
+   deskof.me — Y2K 手绘拼贴像素风主题
+   ============================================ */
+
+/* --- Google Fonts (pixel + handwriting) --- */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Gaegu:wght@300;400;700&family=Nothing+You+Could+Do&display=swap');
+
+/* --- CSS Variables --- */
+:root {
+  /* Y2K 霓虹色系 */
+  --y2k-pink: #FF69B4;
+  --y2k-hotpink: #FF1493;
+  --y2k-cyan: #00FFFF;
+  --y2k-lime: #39FF14;
+  --y2k-purple: #BF40BF;
+  --y2k-orange: #FF8C00;
+  --y2k-yellow: #FFD700;
+  --y2k-blue: #4169E1;
+
+  /* 纸质手工色 */
+  --paper-bg: #F5F0E8;
+  --paper-dark: #E8E0D0;
+  --paper-line: rgba(0,0,0,0.06);
+  --tape-color: rgba(255,255,180,0.65);
+  --sticky-note: #FFF9C4;
+  --kraft: #C4A882;
+
+  /* 像素 */
+  --pixel-font: 'Press Start 2P', monospace;
+  --hand-font: 'Gaegu', cursive;
+  --note-font: 'Nothing You Could Do', cursive;
+
+  /* Win95/Y2K 窗口 */
+  --win-bg: #C0C0C0;
+  --win-border-light: #FFFFFF;
+  --win-border-dark: #808080;
+  --win-border-darker: #404040;
+  --titlebar-bg: linear-gradient(90deg, #000080 0%, #1084D0 100%);
+  --titlebar-text: #FFFFFF;
+  --win-bg-inner: #FFFFFF;
+
+  /* 阴影和层级 */
+  --shadow-pixel: 3px 3px 0px rgba(0,0,0,0.2);
+  --shadow-window: 2px 2px 0px #000;
+  --shadow-icon: 1px 1px 0px rgba(0,0,0,0.3);
+  --z-desktop: 0;
+  --z-icon: 10;
+  --z-window: 100;
+  --z-contextmenu: 1000;
+  --z-cursor: 99999;
+
+  /* 尺寸 */
+  --icon-size: 72px;
+  --taskbar-height: 40px;
+  --window-min-w: 320px;
+  --window-min-h: 240px;
+}
+
+/* --- Reset & Base --- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--hand-font);
+  cursor: none; /* 隐藏系统光标 */
+  user-select: none;
+}
+
+body {
+  background: var(--paper-bg);
+  /* 纸张纹理 */
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 2px, var(--paper-line) 2px, var(--paper-line) 3px),
+    repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(0,0,0,0.02) 20px, rgba(0,0,0,0.02) 21px);
+}
+
+/* 可选：噪点纹理叠加 */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 99998;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* --- Scrollbar --- */
+::-webkit-scrollbar { width: 16px; }
+::-webkit-scrollbar-track {
+  background: var(--win-bg);
+  border: 2px solid var(--win-border-dark);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--win-bg);
+  border: 2px solid;
+  border-color: var(--win-border-light) var(--win-border-dark) var(--win-border-dark) var(--win-border-light);
+}
+
+/* --- Animations --- */
+@keyframes pixelShake {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(-2px, 1px); }
+  50% { transform: translate(2px, -1px); }
+  75% { transform: translate(-1px, -1px); }
+}
+
+@keyframes windowOpen {
+  0% { transform: scale(0.3); opacity: 0; }
+  60% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes windowClose {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.3); opacity: 0; }
+}
+
+@keyframes iconBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes staggerFadeIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes clockFlip {
+  0% { transform: rotateX(0deg); }
+  50% { transform: rotateX(90deg); }
+  100% { transform: rotateX(0deg); }
+}
+
+@keyframes inkSplatter {
+  0% { transform: scale(0); opacity: 1; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+@keyframes floatUp {
+  0% { transform: translateY(0) rotate(0deg); opacity: 0.8; }
+  100% { transform: translateY(-60px) rotate(15deg); opacity: 0; }
+}
+
+@keyframes rgbShift {
+  0%, 100% { text-shadow: 2px 2px 0 #FF69B4, -2px -2px 0 #00FFFF; }
+  50% { text-shadow: -2px -2px 0 #FF69B4, 2px 2px 0 #00FFFF; }
+}
+
+@keyframes blinkBorder {
+  0%, 100% { border-color: var(--y2k-pink); }
+  50% { border-color: var(--y2k-cyan); }
+}
+
+@keyframes wallpaperParallax {
+  0% { background-position: center; }
+}
+
+/* --- Selections --- */
+::selection {
+  background: var(--y2k-blue);
+  color: white;
+}
