@@ -15,24 +15,21 @@ async function hashPassword(password) {
 export function useAuth() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [needsSetup, setNeedsSetup] = useState(false);
+  const [needsSetup, setNeedsSetup] = useState(false); // 主动触发
   const [needsLogin, setNeedsLogin] = useState(false);
+  const [adminExists, setAdminExists] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     const session = localStorage.getItem(SESSION_KEY);
+    setAdminExists(!!stored);
     setIsInitialized(true);
 
-    if (!stored) {
-      // 无管理员密码 → 需要首次设置
-      setNeedsSetup(true);
-    } else if (session === 'admin') {
-      // 记住的登录会话 → 直接管理员
+    if (session === 'admin') {
+      // 记住的登录 → 直接管理员
       setIsAdmin(true);
-    } else {
-      // 有管理员但无会话 → 访客模式（不弹登录窗）
-      // needsLogin 保持 false，用户通过 Start 菜单手动登录
     }
+    // 无论是否有密码存储，都不弹窗。访客直接看桌面
   }, []);
 
   const setupAdmin = useCallback(async (password) => {
@@ -40,6 +37,7 @@ export function useAuth() {
     const hash = await hashPassword(password);
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ hash, createdAt: Date.now() }));
     localStorage.setItem(SESSION_KEY, 'admin');
+    setAdminExists(true);
     setIsAdmin(true);
     setNeedsSetup(false);
     return { success: true };
@@ -47,7 +45,7 @@ export function useAuth() {
 
   const login = useCallback(async (password) => {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) return { success: false, error: '未设置管理员密码' };
+    if (!stored) return { success: false, error: '未设置管理员密码，请先注册' };
     try {
       const { hash } = JSON.parse(stored);
       const inputHash = await hashPassword(password);
@@ -68,14 +66,10 @@ export function useAuth() {
     setIsAdmin(false);
   }, []);
 
-  // 显示登录窗口（从 Start 菜单触发）
-  const showLogin = useCallback(() => {
-    setNeedsLogin(true);
-  }, []);
-
-  const hideLogin = useCallback(() => {
-    setNeedsLogin(false);
-  }, []);
+  const showLogin = useCallback(() => setNeedsLogin(true), []);
+  const hideLogin = useCallback(() => setNeedsLogin(false), []);
+  const showSetup = useCallback(() => setNeedsSetup(true), []);
+  const hideSetup = useCallback(() => setNeedsSetup(false), []);
 
   const [editMode, setEditMode] = useState(false);
   const toggleEditMode = useCallback(() => {
@@ -83,6 +77,9 @@ export function useAuth() {
     setEditMode(prev => !prev);
   }, [isAdmin]);
 
-  return { isAdmin, isInitialized, needsSetup, needsLogin, editMode,
-    setupAdmin, login, logout, showLogin, hideLogin, toggleEditMode };
+  return {
+    isAdmin, isInitialized, needsSetup, needsLogin, adminExists,
+    editMode, setupAdmin, login, logout,
+    showLogin, hideLogin, showSetup, hideSetup, toggleEditMode,
+  };
 }

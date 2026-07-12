@@ -33,46 +33,47 @@ export default function App() {
   }, [desktopData, rename]);
 
   const handleRenameStart = useCallback((id, name) => rename.startRename(id, name), [rename]);
-
+  
   const handleChangeIcon = useCallback((id) => {
     const url = prompt('输入新图标的图片 URL（支持 WebP/GIF/PNG，留空恢复默认）：');
     if (url !== null) desktopData.updateIcon(id, url || null);
   }, [desktopData]);
 
   const handleAddItem = useCallback((item) => {
-    const x = 40 + Math.random() * 400;
-    const y = 40 + Math.random() * 300;
-    desktopData.addItem({ ...item, position: { x, y } });
+    desktopData.addItem({ ...item, position: { x: 40 + Math.random()*400, y: 40 + Math.random()*300 } });
   }, [desktopData]);
 
   const handleUpdateContent = useCallback((id, updates) => {
     desktopData.updateItemContent(id, updates);
   }, [desktopData]);
 
-  const handleConfigChange = useCallback((newConfig) => {
-    setSiteConfig(newConfig);
-  }, []);
+  const handleConfigChange = useCallback((newConfig) => setSiteConfig(newConfig), []);
+
+  // 编辑模式切换
+  const handleToggleEdit = useCallback(() => {
+    if (!auth.isAdmin) { auth.showLogin(); return; }
+    auth.toggleEditMode();
+  }, [auth]);
 
   // ===== 渲染 =====
-
-  // 初始化中
   if (!auth.isInitialized) return null;
 
-  // 首次设置管理员密码（唯一的阻断弹窗）
+  // 主动触发的注册弹窗（仅当此浏览器无管理员时）
   if (auth.needsSetup) {
-    return (<><CustomCursor /><SetupScreen onSetup={auth.setupAdmin} /></>);
+    return (<><CustomCursor /><SetupScreen onSetup={auth.setupAdmin} onCancel={auth.hideSetup} /></>);
   }
 
-  // 手动触发的登录弹窗（从 Start 菜单）
+  // 主动触发的登录弹窗
   if (auth.needsLogin) {
     return (<>
       <CustomCursor />
       <LoginScreen onLogin={auth.login} onCancel={auth.hideLogin}
-        onContinueAsGuest={auth.hideLogin} />
+        onSetup={() => { auth.hideLogin(); auth.showSetup(); }}
+        adminExists={auth.adminExists} />
     </>);
   }
 
-  // 主桌面（访客和管理员都走这里）
+  // 主桌面（所有用户都走这里）
   return (<>
     <CustomCursor />
     <Desktop items={desktopData.items} wallpaper={siteConfig.wallpaper}
@@ -88,7 +89,7 @@ export default function App() {
       contextMenu={contextMenu.contextMenu}
       showContextMenu={contextMenu.showContextMenu}
       hideContextMenu={contextMenu.hideContextMenu}
-      isAdmin={auth.isAdmin} onToggleEdit={auth.toggleEditMode}
+      isAdmin={auth.isAdmin} onToggleEdit={handleToggleEdit}
       onOpenSettings={() => setShowSettings(true)} />
 
     <WindowManager windows={windowManager.windows}
@@ -108,7 +109,7 @@ export default function App() {
       <Taskbar windows={windowManager.windows}
         isAdmin={auth.isAdmin} editMode={auth.editMode}
         onRestoreWindow={windowManager.restoreWindow}
-        onToggleEdit={auth.toggleEditMode}
+        onToggleEdit={handleToggleEdit}
         onOpenSettings={() => setShowSettings(true)}
         onLogout={auth.logout} onShowLogin={auth.showLogin}
         startMenuItems={siteConfig.startMenuItems} />
