@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, memo } from 'react';
 import Desktop from './components/desktop/Desktop';
 import WindowManager from './components/window/WindowManager';
 import Taskbar from './components/taskbar/Taskbar';
@@ -14,6 +14,11 @@ import { loadSiteConfig, saveSiteConfig } from './config/siteConfig';
 import { canOpenWindow } from './utils/fileHelpers';
 import './styles/theme.css';
 
+// 性能优化：memo 重型组件
+const MemoDesktop = memo(Desktop);
+const MemoWindowManager = memo(WindowManager);
+const MemoTaskbar = memo(Taskbar);
+
 export default function App() {
   const auth = useAuth();
   const [siteConfig, setSiteConfig] = useState(() => loadSiteConfig());
@@ -26,90 +31,54 @@ export default function App() {
   const handleDoubleClick = useCallback((item) => {
     if (canOpenWindow(item.type)) windowManager.openWindow(item);
   }, [windowManager]);
+  const handleSelect = useCallback((id) => { desktopData.setSelectedId(id); if (rename.renamingId&&rename.renamingId!==id) rename.confirmRename(); }, [desktopData,rename]);
+  const handleRenameStart = useCallback((id,name)=>rename.startRename(id,name),[rename]);
+  const handleChangeIcon = useCallback((id)=>{const u=prompt('输入图标URL（支持WebP/GIF，留空恢复）：');if(u!==null)desktopData.updateIcon(id,u||null)},[desktopData]);
+  const handleAddItem = useCallback((item)=>desktopData.addItem({...item,position:{x:40+Math.random()*400,y:40+Math.random()*300}}),[desktopData]);
+  const handleUpdateContent = useCallback((id,u)=>desktopData.updateItemContent(id,u),[desktopData]);
+  const handleConfigChange = useCallback((c)=>setSiteConfig(c),[]);
 
-  const handleSelect = useCallback((id) => {
-    desktopData.setSelectedId(id);
-    if (rename.renamingId && rename.renamingId !== id) rename.confirmRename();
-  }, [desktopData, rename]);
-
-  const handleRenameStart = useCallback((id, name) => rename.startRename(id, name), [rename]);
-  
-  const handleChangeIcon = useCallback((id) => {
-    const url = prompt('输入新图标 URL（支持 WebP/GIF，留空恢复默认）：');
-    if (url !== null) desktopData.updateIcon(id, url || null);
-  }, [desktopData]);
-
-  const handleAddItem = useCallback((item) => {
-    desktopData.addItem({ ...item, position: { x: 40+Math.random()*400, y: 40+Math.random()*300 } });
-  }, [desktopData]);
-
-  const handleUpdateContent = useCallback((id, updates) => {
-    desktopData.updateItemContent(id, updates);
-  }, [desktopData]);
-
-  const handleConfigChange = useCallback((newConfig) => {
-    setSiteConfig(newConfig);
-  }, []);
-
-  // 装饰管理
   const handleAddDecoration = useCallback((dec) => {
-    const newDec = { ...dec, id: `dec-${Date.now()}`, zIndex: 5 };
-    const decs = [...(siteConfig.decorations || []), newDec];
-    const newConfig = { ...siteConfig, decorations: decs };
-    setSiteConfig(newConfig);
-    saveSiteConfig(newConfig);
+    const nd = {...dec,id:`dec-${Date.now()}`,zIndex:dec.zIndex||20000};
+    const decs = [...(siteConfig.decorations||[]), nd];
+    const nc = {...siteConfig, decorations:decs};
+    setSiteConfig(nc); saveSiteConfig(nc);
   }, [siteConfig]);
-
-  const handleUpdateDecoration = useCallback((id, updates) => {
-    const decs = (siteConfig.decorations || []).map(d => d.id === id ? { ...d, ...updates } : d);
-    const newConfig = { ...siteConfig, decorations: decs };
-    setSiteConfig(newConfig);
-    saveSiteConfig(newConfig);
+  const handleUpdateDecoration = useCallback((id,u) => {
+    const decs = (siteConfig.decorations||[]).map(d=>d.id===id?{...d,...u}:d);
+    const nc = {...siteConfig, decorations:decs};
+    setSiteConfig(nc); saveSiteConfig(nc);
   }, [siteConfig]);
-
   const handleDeleteDecoration = useCallback((id) => {
-    const decs = (siteConfig.decorations || []).filter(d => d.id !== id);
-    const newConfig = { ...siteConfig, decorations: decs };
-    setSiteConfig(newConfig);
-    saveSiteConfig(newConfig);
+    const decs = (siteConfig.decorations||[]).filter(d=>d.id!==id);
+    const nc = {...siteConfig, decorations:decs};
+    setSiteConfig(nc); saveSiteConfig(nc);
   }, [siteConfig]);
 
-  // 保存窗口默认大小
-  const handleSaveWindowDefault = useCallback((type, size) => {
-    const newConfig = { ...siteConfig, windowDefaults: { ...siteConfig.windowDefaults, [type]: size } };
-    setSiteConfig(newConfig);
-    saveSiteConfig(newConfig);
+  const handleSaveWindowDefault = useCallback((type,size) => {
+    const nc = {...siteConfig, windowDefaults:{...siteConfig.windowDefaults,[type]:size}};
+    setSiteConfig(nc); saveSiteConfig(nc);
   }, [siteConfig]);
 
-  // 发布
-  const handlePublish = useCallback(async (token) => {
-    return await desktopData.publishToGitHub(token);
+  const handlePublish = useCallback(async (token, version) => {
+    return await desktopData.publishToGitHub(token, version);
   }, [desktopData]);
 
-  // 编辑模式
   const handleToggleEdit = useCallback(() => {
     if (!auth.isAdmin) { auth.showLogin(); return; }
     auth.toggleEditMode();
   }, [auth]);
 
-  const isEditMode = auth.isAdmin && auth.editMode;
-
   if (!auth.isInitialized) return null;
+  if (auth.needsSetup) return (<><CustomCursor /><SetupScreen onSetup={auth.setupAdmin} onCancel={auth.hideSetup} /></>);
+  if (auth.needsLogin) return (<><CustomCursor /><LoginScreen onLogin={auth.login} onCancel={auth.hideLogin} onSetup={()=>{auth.hideLogin();auth.showSetup()}} adminExists={auth.adminExists} /></>);
 
-  if (auth.needsSetup) {
-    return (<><CustomCursor /><SetupScreen onSetup={auth.setupAdmin} onCancel={auth.hideSetup} /></>);
-  }
-
-  if (auth.needsLogin) {
-    return (<><CustomCursor /><LoginScreen onLogin={auth.login} onCancel={auth.hideLogin}
-      onSetup={() => { auth.hideLogin(); auth.showSetup(); }} adminExists={auth.adminExists} /></>);
-  }
+  const isEdit = auth.isAdmin && auth.editMode;
 
   return (<>
     <CustomCursor />
-    <Desktop items={desktopData.items} wallpaper={siteConfig.wallpaper}
-      isEditMode={isEditMode}
-      selectedId={desktopData.selectedId}
+    <MemoDesktop items={desktopData.items} wallpaper={siteConfig.wallpaper}
+      isEditMode={isEdit} selectedId={desktopData.selectedId}
       renamingId={rename.renamingId} renameValue={rename.renameValue}
       onRenameValueChange={rename.setRenameValue}
       onRenameConfirm={rename.confirmRename} onRenameCancel={rename.cancelRename}
@@ -118,47 +87,43 @@ export default function App() {
       onAddItem={handleAddItem} onDeleteItem={desktopData.removeItem}
       onRenameStart={handleRenameStart} onChangeIcon={handleChangeIcon}
       contextMenu={contextMenu.contextMenu}
-      showContextMenu={contextMenu.showContextMenu}
-      hideContextMenu={contextMenu.hideContextMenu}
-      isAdmin={auth.isAdmin} onToggleEdit={handleToggleEdit}
-      onOpenSettings={() => setShowSettings(true)}
+      showContextMenu={contextMenu.showContextMenu} hideContextMenu={contextMenu.hideContextMenu}
+      isAdmin={auth.isAdmin} onToggleEdit={handleToggleEdit} onOpenSettings={()=>setShowSettings(true)}
       decorations={siteConfig.decorations}
       onUpdateDecoration={handleUpdateDecoration}
       onDeleteDecoration={handleDeleteDecoration}
       onAddDecoration={handleAddDecoration}
-      onMoveItemIntoFolder={desktopData.moveItemIntoFolder} />
+      onMoveItemIntoFolder={desktopData.moveItemIntoFolder}
+      iconSize={siteConfig.iconSize}
+      parallaxEnabled={siteConfig.parallaxEnabled!==false}
+      parallaxStrength={siteConfig.parallaxStrength||8} />
 
-    <WindowManager windows={windowManager.windows}
-      isEditMode={isEditMode}
-      selectedId={desktopData.selectedId}
-      renamingId={rename.renamingId} renameValue={rename.renameValue}
-      onRenameValueChange={rename.setRenameValue}
+    <MemoWindowManager windows={windowManager.windows} isEditMode={isEdit}
+      selectedId={desktopData.selectedId} renamingId={rename.renamingId}
+      renameValue={rename.renameValue} onRenameValueChange={rename.setRenameValue}
       onRenameConfirm={rename.confirmRename} onRenameCancel={rename.cancelRename}
       inputRef={rename.inputRef} onSelect={handleSelect}
-      onDoubleClickItem={handleDoubleClick}
-      onContextMenu={contextMenu.showContextMenu} onDragStart={() => {}}
-      onClose={windowManager.closeWindow} onMinimize={windowManager.toggleMinimize}
-      onFocus={windowManager.focusWindow} onUpdateContent={handleUpdateContent}
-      onMoveItem={desktopData.moveItem}
+      onDoubleClickItem={handleDoubleClick} onContextMenu={contextMenu.showContextMenu}
+      onDragStart={()=>{}} onClose={windowManager.closeWindow}
+      onMinimize={windowManager.toggleMinimize} onFocus={windowManager.focusWindow}
+      onUpdateContent={handleUpdateContent} onMoveItem={desktopData.moveItem}
       windowDefaults={siteConfig.windowDefaults}
       windowDecorations={siteConfig.windowDecorations}
       onSaveWindowDefault={handleSaveWindowDefault}
       onDragOutOfFolder={desktopData.moveItemOutOfFolder} />
 
-    {siteConfig.showTaskbar !== false && (
-      <Taskbar windows={windowManager.windows}
+    {siteConfig.showTaskbar!==false && (
+      <MemoTaskbar windows={windowManager.windows}
         isAdmin={auth.isAdmin} editMode={auth.editMode}
         onRestoreWindow={windowManager.restoreWindow}
-        onToggleEdit={handleToggleEdit}
-        onOpenSettings={() => setShowSettings(true)}
+        onToggleEdit={handleToggleEdit} onOpenSettings={()=>setShowSettings(true)}
         onLogout={auth.logout} onShowLogin={auth.showLogin}
         startMenuItems={siteConfig.startMenuItems} />
     )}
 
     {showSettings && (
-      <ConfigPanel onClose={() => setShowSettings(false)}
-        onConfigChange={handleConfigChange}
-        onPublish={handlePublish} />
+      <ConfigPanel onClose={()=>setShowSettings(false)}
+        onConfigChange={handleConfigChange} onPublish={handlePublish} />
     )}
   </>);
 }
