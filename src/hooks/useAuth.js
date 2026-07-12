@@ -1,12 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 
-/**
- * 管理员认证系统
- * - 首次访问：设置密码即成为管理员
- * - 后续访问：输入密码登录
- * - 密码 SHA-256 哈希存储
- */
 const STORAGE_KEY = 'deskofme_auth';
+const SESSION_KEY = 'deskofme_session';
 const SALT = 'deskofme_salt_2026';
 
 async function hashPassword(password) {
@@ -23,29 +18,33 @@ export function useAuth() {
   const [needsSetup, setNeedsSetup] = useState(false);
   const [needsLogin, setNeedsLogin] = useState(false);
 
-  // 初始化：检查是否有已存储的管理员密码
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
+    const session = localStorage.getItem(SESSION_KEY);
     setIsInitialized(true);
+
     if (!stored) {
-      setNeedsSetup(true); // 首次访问，需要设置密码
+      // 无管理员密码 → 需要首次设置
+      setNeedsSetup(true);
+    } else if (session === 'admin') {
+      // 记住的登录会话 → 直接管理员
+      setIsAdmin(true);
     } else {
-      setNeedsLogin(true); // 已有管理员，需要登录
+      // 有管理员但无会话 → 访客模式（不弹登录窗）
+      // needsLogin 保持 false，用户通过 Start 菜单手动登录
     }
   }, []);
 
-  // 首次设置管理员密码
   const setupAdmin = useCallback(async (password) => {
     if (password.length < 4) return { success: false, error: '密码至少4位' };
     const hash = await hashPassword(password);
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ hash, createdAt: Date.now() }));
+    localStorage.setItem(SESSION_KEY, 'admin');
     setIsAdmin(true);
     setNeedsSetup(false);
-    setNeedsLogin(false);
     return { success: true };
   }, []);
 
-  // 登录
   const login = useCallback(async (password) => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (!stored) return { success: false, error: '未设置管理员密码' };
@@ -53,38 +52,37 @@ export function useAuth() {
       const { hash } = JSON.parse(stored);
       const inputHash = await hashPassword(password);
       if (inputHash === hash) {
+        localStorage.setItem(SESSION_KEY, 'admin');
         setIsAdmin(true);
         setNeedsLogin(false);
         return { success: true };
       }
       return { success: false, error: '密码错误' };
     } catch (e) {
-      return { success: false, error: '数据损坏，请清除浏览器数据后重试' };
+      return { success: false, error: '数据损坏' };
     }
   }, []);
 
-  // 退出登录（回到访客模式）
   const logout = useCallback(() => {
+    localStorage.removeItem(SESSION_KEY);
     setIsAdmin(false);
+  }, []);
+
+  // 显示登录窗口（从 Start 菜单触发）
+  const showLogin = useCallback(() => {
     setNeedsLogin(true);
   }, []);
 
-  // 切换编辑模式（管理员专属）
+  const hideLogin = useCallback(() => {
+    setNeedsLogin(false);
+  }, []);
+
   const [editMode, setEditMode] = useState(false);
   const toggleEditMode = useCallback(() => {
     if (!isAdmin) return;
     setEditMode(prev => !prev);
   }, [isAdmin]);
 
-  return {
-    isAdmin,
-    isInitialized,
-    needsSetup,
-    needsLogin,
-    editMode,
-    setupAdmin,
-    login,
-    logout,
-    toggleEditMode,
-  };
+  return { isAdmin, isInitialized, needsSetup, needsLogin, editMode,
+    setupAdmin, login, logout, showLogin, hideLogin, toggleEditMode };
 }

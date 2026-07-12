@@ -1,76 +1,45 @@
 import './StartMenu.css';
 
-/**
- * 开始菜单
- */
 export default function StartMenu({
-  isAdmin,
-  editMode,
-  onToggleEdit,
-  onOpenSettings,
-  onLogout,
-  onClose,
+  isAdmin, editMode, onToggleEdit, onOpenSettings,
+  onLogout, onShowLogin, onClose, startMenuItems = [],
 }) {
+  const handleAction = (item) => {
+    onClose();
+    if (!item.action) return;
+    switch (item.action) {
+      case 'toggleEdit': onToggleEdit(); break;
+      case 'openSettings': onOpenSettings(); break;
+      case 'logout': onLogout(); break;
+      case 'showLogin': onShowLogin(); break;
+      case 'link': window.open(item.url, '_blank'); break;
+    }
+  };
+
   return (
     <div className="start-menu-overlay" onClick={onClose}>
       <div className="start-menu win98-window" onClick={(e) => e.stopPropagation()}>
-        {/* 侧边栏 */}
         <div className="start-menu-sidebar">
           <span className="start-menu-brand">deskof.me</span>
           <span className="start-menu-version">Y2K Edition</span>
         </div>
-
-        {/* 菜单项 */}
         <div className="start-menu-items">
-          {isAdmin && (
-            <button
-              className="start-menu-item"
-              onClick={() => { onToggleEdit(); onClose(); }}
-            >
-              <span className="menu-item-icon">{editMode ? '👁️' : '✎'}</span>
-              <span>{editMode ? '退出编辑模式' : '进入编辑模式'}</span>
-            </button>
-          )}
-
-          {isAdmin && (
-            <button
-              className="start-menu-item"
-              onClick={() => { onOpenSettings(); onClose(); }}
-            >
-              <span className="menu-item-icon">⚙️</span>
-              <span>站点设置</span>
-            </button>
-          )}
-
-          <div className="start-menu-separator" />
-
-          <button
-            className="start-menu-item"
-            onClick={() => window.open('https://github.com/wu66chen/deskof.me', '_blank')}
-          >
-            <span className="menu-item-icon">⭐</span>
-            <span>GitHub</span>
-          </button>
-
-          <div className="start-menu-separator" />
-
-          {isAdmin ? (
-            <button
-              className="start-menu-item"
-              onClick={() => { onLogout(); onClose(); }}
-            >
-              <span className="menu-item-icon">🚪</span>
-              <span>退出登录</span>
-            </button>
-          ) : (
-            <button
-              className="start-menu-item"
-              onClick={() => { onClose(); /* 触发登录 */ }}
-            >
-              <span className="menu-item-icon">🔑</span>
-              <span>管理员登录</span>
-            </button>
-          )}
+          {startMenuItems.map((item, i) => {
+            if (item.type === 'separator') return <div key={i} className="start-menu-separator" />;
+            if (item.adminOnly && !isAdmin) return null;
+            // 编辑模式切换的显示
+            let label = item.label;
+            let icon = item.icon;
+            if (item.id === 'edit' && editMode) { label = item.editLabel || item.label; icon = item.editIcon || item.icon; }
+            // 登出/登录切换
+            if (item.id === 'logout' && !isAdmin) { label = item.guestLabel || item.label; icon = item.guestIcon || item.icon; }
+            return (
+              <button key={item.id || i} className="start-menu-item" onClick={() => handleAction(item)}>
+                <span className="menu-item-icon">{icon}</span>
+                <span>{label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
