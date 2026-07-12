@@ -13,7 +13,12 @@ export default function StartMenu({
         case 'openSettings': onOpenSettings(); break;
         case 'logout': onLogout(); break;
         case 'showLogin': onShowLogin(); break;
-        case 'link': window.open(item.url, '_blank'); break;
+        case 'link': {
+          let url = item.url || '';
+          if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
+          window.open(url, '_blank');
+          break;
+        }
       }
     }, 50);
   };

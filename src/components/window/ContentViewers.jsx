@@ -26,21 +26,17 @@ export function ImageViewer({ item, isEditMode, onUpdateContent }) {
   const saveUrl = () => { if (onUpdateContent) onUpdateContent(item.id, { url }); setEditing(false); };
 
   return (
-    <div className="viewer-container">
+    <div className="viewer-container viewer-img-container">
       {isEditMode && (<div className="viewer-toolbar">
-        <button className="viewer-edit-btn" onClick={() => setEditing(!editing)}>{editing?'取消':'✏️ 编辑 URL'}</button>
+        <button className="viewer-edit-btn" onClick={() => setEditing(!editing)}>{editing?'取消':'✏️ URL'}</button>
         {editing && (<div className="viewer-edit-row"><input className="viewer-input" value={url} onChange={e=>setUrl(e.target.value)} placeholder="图片 URL" /><button className="viewer-save-btn" onClick={saveUrl}>保存</button></div>)}
+        <span className="zoom-badge">{Math.round(zoom*100)}%</span>
       </div>)}
-      <div className="viewer-content viewer-image" onWheel={handleWheel}>
+      <div className="viewer-content viewer-image-full" onWheel={handleWheel}>
         {url ? (
-          <div className="polaroid-frame" style={{ cursor: dragging ? 'grabbing' : 'grab', overflow:'hidden' }}>
-            <img src={url} alt={item.name} className="polaroid-img" draggable={false}
-              onMouseDown={handleMouseDown}
-              style={{ transform: `scale(${zoom}) translate(${pan.x/zoom}px, ${pan.y/zoom}px)`, transition: dragging ? 'none' : 'transform 0.2s' }} />
-            <div className="polaroid-caption">{item.name}</div>
-            <div className="tape-piece tape-tl" /><div className="tape-piece tape-tr" />
-            <div className="zoom-indicator">{Math.round(zoom*100)}%</div>
-          </div>
+          <img src={url} alt={item.name} className="viewer-img-adaptive" draggable={false}
+            onMouseDown={handleMouseDown}
+            style={{ transform: `scale(${zoom}) translate(${pan.x/zoom}px, ${pan.y/zoom}px)`, cursor: dragging ? 'grabbing' : 'grab' }} />
         ) : (<div className="viewer-placeholder"><span>🖼️</span><p>暂无图片</p></div>)}
       </div>
     </div>
@@ -53,14 +49,14 @@ export function VideoPlayer({ item, isEditMode, onUpdateContent }) {
   const saveUrl = () => { if (onUpdateContent) onUpdateContent(item.id, { url }); setEditing(false); };
 
   return (
-    <div className="viewer-container" style={{background:'#000'}}>
+    <div className="viewer-container viewer-vid-container">
       {isEditMode && (<div className="viewer-toolbar">
-        <button className="viewer-edit-btn" onClick={() => setEditing(!editing)}>{editing?'取消':'✏️ 编辑 URL'}</button>
+        <button className="viewer-edit-btn" onClick={() => setEditing(!editing)}>{editing?'取消':'✏️ URL'}</button>
         {editing && (<div className="viewer-edit-row"><input className="viewer-input" value={url} onChange={e=>setUrl(e.target.value)} placeholder="视频 URL" /><button className="viewer-save-btn" onClick={saveUrl}>保存</button></div>)}
       </div>)}
-      <div className="viewer-content viewer-video" style={{display:'flex',alignItems:'center',justifyContent:'center'}}>
+      <div className="viewer-content viewer-video-full">
         {url ? (
-          <video controls src={url} style={{maxWidth:'100%',maxHeight:'100%',objectFit:'contain'}} />
+          <video controls src={url} className="viewer-video-adaptive" />
         ) : (<div className="viewer-placeholder"><span>🎬</span><p>暂无视频</p></div>)}
       </div>
     </div>
@@ -81,13 +77,13 @@ export function MarkdownViewer({ item, isEditMode, onUpdateContent }) {
   return (
     <div className="viewer-container">
       {isEditMode && (<div className="viewer-toolbar">
-        <button className="viewer-edit-btn" onClick={()=>setEditing(!editing)}>{editing?'👁️ 预览':'✏️ 编辑'}</button>
-        {editing && <button className="viewer-save-btn" onClick={save}>💾 保存</button>}
+        <button className="viewer-edit-btn" onClick={()=>setEditing(!editing)}>{editing?'👁️':'✏️'}</button>
+        {editing && <button className="viewer-save-btn" onClick={save}>💾</button>}
       </div>)}
       <div className="viewer-content viewer-markdown">
         {editing ? (<textarea className="markdown-editor" value={content} onChange={e=>setContent(e.target.value)} />) :
          content ? (<div className="markdown-preview" dangerouslySetInnerHTML={{__html:render(content)}} />) :
-         (<div className="viewer-placeholder"><span>📝</span><p>暂无内容</p></div>)}
+         (<div className="viewer-placeholder"><span>📝</span><p>暂无</p></div>)}
       </div>
     </div>
   );
@@ -100,14 +96,14 @@ export function LinkLauncher({ item, isEditMode, onUpdateContent }) {
   return (
     <div className="viewer-container">
       {isEditMode && (<div className="viewer-toolbar">
-        <button className="viewer-edit-btn" onClick={()=>setEditing(!editing)}>{editing?'取消':'✏️ 编辑'}</button>
-        {editing && (<div className="viewer-edit-row"><input className="viewer-input" value={url} onChange={e=>setUrl(e.target.value)} placeholder="链接 URL" /><button className="viewer-save-btn" onClick={save}>保存</button></div>)}
+        <button className="viewer-edit-btn" onClick={()=>setEditing(!editing)}>{editing?'取消':'✏️'}</button>
+        {editing && (<div className="viewer-edit-row"><input className="viewer-input" value={url} onChange={e=>setUrl(e.target.value)} placeholder="URL" /><button className="viewer-save-btn" onClick={save}>保存</button></div>)}
       </div>)}
       <div className="viewer-content viewer-link">
         {url ? (<div className="link-card">
           <div className="link-icon">🔗</div><div className="link-name">{item.name}</div><div className="link-url">{url}</div>
-          <a href={url} target="_blank" rel="noopener noreferrer" className="link-open-btn">打开链接 ↗</a>
-        </div>) : (<div className="viewer-placeholder"><span>🔗</span><p>暂无链接</p></div>)}
+          <a href={url} target="_blank" rel="noopener noreferrer" className="link-open-btn">打开 ↗</a>
+        </div>) : (<div className="viewer-placeholder"><span>🔗</span><p>暂无</p></div>)}
       </div>
     </div>
   );

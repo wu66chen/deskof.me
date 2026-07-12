@@ -32,11 +32,12 @@
 }
 .window-btn:active { border-color: var(--win-border-dark) var(--win-border-light) var(--win-border-light) var(--win-border-dark); box-shadow: none; padding: 1px 0 0 1px; }
 .window-btn-close:active { background: #CC0000; color: white; }
-
 .window-content {
-  flex: 1; overflow: auto; background: white;
-  border: 2px solid; border-color: var(--win-border-dark) var(--win-border-light) var(--win-border-light) var(--win-border-dark);
+  flex: 1; overflow: auto; background-color: white;
+  border: 2px solid;
+  border-color: var(--win-border-dark) var(--win-border-light) var(--win-border-light) var(--win-border-dark);
   position: relative;
+  background-size: cover; background-position: center; background-repeat: no-repeat;
 }
 
 /* 缩放手柄 */
