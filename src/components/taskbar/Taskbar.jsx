@@ -8,6 +8,7 @@ export default function Taskbar({
 }) {
   const [time, setTime] = useState(new Date());
   const [startOpen, setStartOpen] = useState(false);
+  const clockRef = useRef(null);
   const clickCount = useRef(0);
   const clickTimer = useRef(null);
 
@@ -16,24 +17,30 @@ export default function Taskbar({
     return () => clearInterval(t);
   }, []);
 
+  // 用原生事件监听时钟点击（确保 dispatchEvent / 真实点击都能触发）
+  useEffect(() => {
+    const el = clockRef.current;
+    if (!el) return;
+    const handler = (e) => {
+      e.stopPropagation();
+      if (isAdmin) return;
+      clickCount.current++;
+      if (clickTimer.current) clearTimeout(clickTimer.current);
+      if (clickCount.current >= 5) {
+        clickCount.current = 0;
+        onShowLogin?.();
+      } else {
+        clickTimer.current = setTimeout(() => { clickCount.current = 0; }, 3000);
+      }
+    };
+    el.addEventListener('click', handler);
+    return () => el.removeEventListener('click', handler);
+  }, [isAdmin, onShowLogin]);
+
   const formatTime = (date) => {
     const h = date.getHours(), m = date.getMinutes().toString().padStart(2, '0');
     return `${h}:${m}`;
   };
-
-  // 时钟连击检测：5 次点击在 3 秒内 → 触发登录
-  const handleClockClick = useCallback((e) => {
-    e.stopPropagation();
-    if (isAdmin) return; // 已是管理员，不触发
-    clickCount.current++;
-    if (clickTimer.current) clearTimeout(clickTimer.current);
-    if (clickCount.current >= 5) {
-      clickCount.current = 0;
-      onShowLogin?.();
-    } else {
-      clickTimer.current = setTimeout(() => { clickCount.current = 0; }, 3000);
-    }
-  }, [isAdmin, onShowLogin]);
 
   return (<>
     {startOpen && (
@@ -57,7 +64,7 @@ export default function Taskbar({
       </div>
       <div className="taskbar-tray">
         {isAdmin && <span className="tray-item admin-indicator" title={editMode?'编辑模式':'管理员'}>{editMode?'✎':'👤'}</span>}
-        <div className="tray-item tray-time" onClick={handleClockClick} title={isAdmin?'':undefined} style={{cursor:'pointer'}}>
+        <div ref={clockRef} className="tray-item tray-time">
           <span className="time-text">{formatTime(time)}</span>
         </div>
       </div>
