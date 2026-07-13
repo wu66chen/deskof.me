@@ -1,4 +1,4 @@
-const PASSWORD_ITERATIONS = 120_000;
+const PASSWORD_ITERATIONS = 30_000;
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
 const RATE_WINDOW_SECONDS = 60 * 15;
 const RATE_LIMIT = 12;
@@ -83,7 +83,7 @@ async function register(request, env, cors) {
   if (passwordError) return json({ error: passwordError }, 400, cors);
 
   const salt = crypto.getRandomValues(new Uint8Array(16));
-  const hash = await derivePasswordHash(body.password, salt, PASSWORD_ITERATIONS);
+  const hash = await derivePasswordHash(body.password, salt, PASSWORD_ITERATIONS, env.AUTH_SECRET);
   const result = await env.DB.prepare(`
     INSERT INTO admin_identity (
       singleton_id, password_hash, password_salt, password_iterations, created_at
@@ -131,6 +131,7 @@ async function login(request, env, cors) {
     body.password,
     fromBase64Url(record.password_salt),
     record.password_iterations,
+    env.AUTH_SECRET,
   );
   const expected = fromBase64Url(record.password_hash);
 
@@ -174,9 +175,10 @@ function validatePassword(password) {
   return '';
 }
 
-async function derivePasswordHash(password, salt, iterations) {
+async function derivePasswordHash(password, salt, iterations, secret) {
+  const pepperedPassword = await sign(`password:${password}`, secret);
   const key = await crypto.subtle.importKey(
-    'raw', encoder.encode(password), { name: 'PBKDF2' }, false, ['deriveBits'],
+    'raw', pepperedPassword, { name: 'PBKDF2' }, false, ['deriveBits'],
   );
   const bits = await crypto.subtle.deriveBits(
     { name: 'PBKDF2', hash: 'SHA-256', salt, iterations }, key, 256,
