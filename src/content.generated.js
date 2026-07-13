@@ -3,7 +3,7 @@ export const publishedDeskState = {
   "config": {
     "desktopName": "deskof.me",
     "username": "Wesley",
-    "dataVersion": 2,
+    "dataVersion": 3,
     "repoUrl": "https://github.com/wu66chen/deskof.me",
     "colors": {
       "winBg": "#C0C0C0",
@@ -127,22 +127,22 @@ export const publishedDeskState = {
     "timeAllocation": [
       {
         "label": "设计",
-        "value": 30,
+        "value": 5,
         "color": "#FF69B4"
       },
       {
         "label": "编码",
-        "value": 30,
+        "value": 16,
         "color": "#00B8D4"
       },
       {
         "label": "思考",
-        "value": 25,
+        "value": 16,
         "color": "#BF40BF"
       },
       {
         "label": "摸鱼",
-        "value": 15,
+        "value": 63,
         "color": "#FFB347"
       }
     ],
@@ -155,8 +155,8 @@ export const publishedDeskState = {
         "🌈",
         "💖"
       ],
-      "wind": 5,
-      "damping": 7
+      "wind": 4,
+      "damping": 10
     },
     "coaHologramText": "100% Pure Human Creativity",
     "changelog": [
