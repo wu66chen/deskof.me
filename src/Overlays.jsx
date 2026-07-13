@@ -101,7 +101,7 @@ export function Taskbar({ config, windows, isAdmin, editMode, onTask, onLogin, o
   </>;
 }
 
-export function AuthDialog({ mode, hasPassword, config, onClose, onLogin, onSetup, onChangeMode }) {
+export function AuthDialog({ mode, adminExists, authReady, authError, config, onClose, onLogin, onSetup, onChangeMode }) {
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
@@ -109,8 +109,10 @@ export function AuthDialog({ mode, hasPassword, config, onClose, onLogin, onSetu
   useEffect(() => { setPassword(''); setConfirm(''); setError(''); }, [mode]);
   if (!mode) return null;
   const setup = mode === 'setup';
+  const unavailable = authReady && adminExists === null;
   const submit = async (event) => {
     event.preventDefault(); setError('');
+    if (!authReady || unavailable) { setError(authError || '正在确认全站管理员状态'); return; }
     if (setup && password !== confirm) { setError('两次输入的密码不一致'); return; }
     setBusy(true);
     const result = setup ? await onSetup(password) : await onLogin(password);
@@ -120,15 +122,15 @@ export function AuthDialog({ mode, hasPassword, config, onClose, onLogin, onSetu
   return <div className="modal-shield auth-shield" onPointerDown={onClose}>
     <section className="auth-card paper-dialog" onPointerDown={stop} style={{ backgroundImage: config.assets.loginBg ? `url(${config.assets.loginBg})` : undefined }}>
       <header><button onClick={onClose} aria-label="关闭">×</button></header>
-      <div className="auth-card__logo">{config.assets.loginLogo ? <img src={config.assets.loginLogo} alt="deskof.me" /> : <span>🖥️</span>}<strong>deskof.me</strong><small>{setup ? '首次设置管理员密码' : '管理员登录'}</small></div>
+      <div className="auth-card__logo">{config.assets.loginLogo ? <img src={config.assets.loginLogo} alt="deskof.me" /> : <span>🖥️</span>}<strong>deskof.me</strong><small>{!authReady ? '正在确认全站管理员…' : setup ? '创建全站唯一管理员' : '管理员登录'}</small></div>
       <form onSubmit={submit}>
-        <label>密码<input type="password" autoFocus value={password} onChange={(event) => setPassword(event.target.value)} placeholder="至少 4 位" /></label>
+        <label>密码<input type="password" autoFocus value={password} onChange={(event) => setPassword(event.target.value)} placeholder="至少 8 位" disabled={!authReady || unavailable} /></label>
         {setup && <label>再次输入<input type="password" value={confirm} onChange={(event) => setConfirm(event.target.value)} /></label>}
-        {error && <p className="form-error">{error}</p>}
-        <button className="paper-button paper-button--primary" disabled={busy} style={config.assets.loginButton ? { backgroundImage: `url(${config.assets.loginButton})` } : undefined}>{busy ? '验证中…' : setup ? '🔐 设为管理员' : '🔓 登录'}</button>
+        {(error || unavailable) && <p className="form-error">{error || authError}</p>}
+        <button className="paper-button paper-button--primary" disabled={busy || !authReady || unavailable} style={config.assets.loginButton ? { backgroundImage: `url(${config.assets.loginButton})` } : undefined}>{busy ? '验证中…' : setup ? '🔐 创建唯一管理员' : '🔓 登录'}</button>
       </form>
       <button className="paper-button" onClick={onClose}>👀 返回桌面</button>
-      {!setup && !hasPassword && <button className="auth-card__setup" onClick={() => onChangeMode('setup')}>🆕 首次设置管理员密码</button>}
+      {!setup && authReady && adminExists === false && <button className="auth-card__setup" onClick={() => onChangeMode('setup')}>🆕 创建唯一管理员</button>}
     </section>
   </div>;
 }

@@ -224,7 +224,7 @@ export default function App() {
     />
     <Taskbar config={config} windows={taskWindows} isAdmin={admin.isAdmin} editMode={effectiveEditMode} onTask={taskClick} onLogin={admin.showLogin} onStartAction={startAction} />
     <ContextMenu menu={menu} item={menu?.itemId ? findItem(desk.items, menu.itemId) : null} isAdmin={admin.isAdmin} editMode={effectiveEditMode} config={config} onClose={() => setMenu(null)} actions={contextActions} />
-    <AuthDialog mode={admin.authMode} hasPassword={admin.hasPassword} config={config} onClose={admin.closeAuth} onLogin={admin.login} onSetup={admin.setup} onChangeMode={(mode) => mode === 'setup' ? admin.showSetup() : admin.showLogin()} />
+    <AuthDialog mode={admin.authMode} adminExists={admin.adminExists} authReady={admin.authReady} authError={admin.authError} config={config} onClose={admin.closeAuth} onLogin={admin.login} onSetup={admin.setup} onChangeMode={(mode) => mode === 'setup' ? admin.showSetup() : admin.showLogin()} />
     <EditorDialog editor={editor} onClose={() => setEditor(null)} onSubmit={submitEditor} />
     {desktopProperties && <DesktopProperties config={config} editMode={effectiveEditMode} itemCount={countItems(desk.items)} decorationCount={desk.decorations.length} onClose={() => setDesktopProperties(false)} onApply={updateConfig} onPreview={(draft) => setScreensaver(draft)} />}
     {filePropertyItem && <FileProperties item={filePropertyItem} parentName={propertyParent?.name} onClose={() => setFilePropertiesId(null)} onShare={shareItem} />}

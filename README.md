@@ -13,10 +13,19 @@
 
 ```bash
 npm install
+npm run auth:dev
 npm run dev
 npm run lint
 npm run build
 ```
+
+本地前端需要把 `.env.example` 复制为 `.env`，认证服务需要把 `worker/.dev.vars.example` 复制为 `worker/.dev.vars` 并更换开发密钥。
+
+## 唯一管理员
+
+管理员身份由 Cloudflare Worker 与 D1 数据库统一管理，不再保存在单个浏览器里。数据库只有一个固定主键为 `1` 的管理员记录；两个设备即使同时发起创建请求，也只有第一个写入会成功，后续请求一律返回 `409 ADMIN_ALREADY_EXISTS`，只能使用第一位管理员的密码登录。
+
+浏览器只保存 30 天登录凭证。认证服务不可用时，管理员入口会安全停用，不会退回浏览器本地创建。旧版 `deskofme_admin_v21` 和 `deskofme_session_v21` 记录会自动失效。
 
 ## 发布
 
@@ -37,8 +46,13 @@ src/
 ├── data.js               # 默认内容与配置矩阵
 ├── content.generated.js  # 发布后的公共桌面数据
 ├── lib.js                # 文件树与分享工具
-├── useDesk.js            # 本地持久化、认证与 GitHub 发布
+├── useDesk.js            # 本地内容、全局认证客户端与 GitHub 发布
 └── styles.css            # 完整视觉、动效与响应式系统
+
+worker/
+├── src/index.js          # 唯一管理员认证 API
+├── db/schema.sql         # D1 数据结构
+└── wrangler.jsonc        # Worker 与数据库绑定
 ```
 
 产品规格见 [`docs/PRD v2.1.md`](docs/PRD%20v2.1.md)。

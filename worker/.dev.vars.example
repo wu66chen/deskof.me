@@ -1,0 +1,2 @@
+# 仅供本地开发。生产环境使用 `wrangler secret put AUTH_SECRET` 设置。
+AUTH_SECRET="replace-with-a-long-random-secret"

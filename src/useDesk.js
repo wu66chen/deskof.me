@@ -3,10 +3,11 @@ import { DEFAULT_STATE } from './data';
 import { clone, mergeState } from './lib';
 
 const DESK_KEY = 'deskofme_state_v21';
-const AUTH_KEY = 'deskofme_admin_v21';
-const SESSION_KEY = 'deskofme_session_v21';
+const LEGACY_AUTH_KEY = 'deskofme_admin_v21';
+const LEGACY_SESSION_KEY = 'deskofme_session_v21';
+const SESSION_KEY = 'deskofme_global_session_v1';
 const TOKEN_KEY = 'deskofme_publish_token_v21';
-const SALT = 'deskof.me::paper-computer::2026';
+const AUTH_API_URL = (import.meta.env.VITE_AUTH_API_URL || '').replace(/\/$/, '');
 
 function loadDesk() {
   try {
@@ -104,44 +105,111 @@ export function useDeskState() {
   return { desk, setDesk, updateConfig, updateItems, updateDecorations, replaceDesk, resetDesk, publish };
 }
 
-async function hashPassword(password) {
-  const bytes = new TextEncoder().encode(`${password}:${SALT}`);
-  const digest = await crypto.subtle.digest('SHA-256', bytes);
-  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+async function authRequest(path, options = {}) {
+  if (!AUTH_API_URL) throw new Error('全局认证服务尚未配置，管理员入口已安全停用');
+  const response = await fetch(`${AUTH_API_URL}${path}`, {
+    ...options,
+    cache: 'no-store',
+    headers: { 'Content-Type': 'application/json', ...options.headers },
+  });
+  const body = await response.json().catch(() => ({}));
+  return { response, body };
 }
 
 export function useAdmin() {
-  const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem(SESSION_KEY) === 'admin');
+  const [isAdmin, setIsAdmin] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [authMode, setAuthMode] = useState(null);
-  const hasPassword = Boolean(localStorage.getItem(AUTH_KEY));
+  const [adminExists, setAdminExists] = useState(null);
+  const [authReady, setAuthReady] = useState(false);
+  const [authError, setAuthError] = useState('');
 
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).has('admin') && !isAdmin) setAuthMode('login');
-  }, [isAdmin]);
+    let active = true;
+    localStorage.removeItem(LEGACY_AUTH_KEY);
+    localStorage.removeItem(LEGACY_SESSION_KEY);
+    const token = localStorage.getItem(SESSION_KEY);
 
-  const setup = useCallback(async (password) => {
-    if (password.length < 4) return { ok: false, error: '密码至少需要 4 个字符' };
-    const hash = await hashPassword(password);
-    localStorage.setItem(AUTH_KEY, JSON.stringify({ hash, createdAt: Date.now() }));
-    localStorage.setItem(SESSION_KEY, 'admin');
-    setIsAdmin(true);
-    setAuthMode(null);
-    return { ok: true };
+    const initialize = async () => {
+      try {
+        const status = await authRequest('/api/admin/status');
+        if (!status.response.ok) throw new Error(status.body.error || '无法读取管理员状态');
+        if (!active) return;
+        setAdminExists(Boolean(status.body.adminExists));
+
+        if (token) {
+          const session = await authRequest('/api/admin/session', {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (!active) return;
+          if (session.response.ok && session.body.authenticated) setIsAdmin(true);
+          else localStorage.removeItem(SESSION_KEY);
+        }
+        setAuthError('');
+      } catch (error) {
+        if (!active) return;
+        localStorage.removeItem(SESSION_KEY);
+        setIsAdmin(false);
+        setAdminExists(null);
+        setAuthError(error.message || '全局认证服务暂时不可用');
+      } finally {
+        if (active) setAuthReady(true);
+      }
+    };
+    initialize();
+    return () => { active = false; };
   }, []);
 
-  const login = useCallback(async (password) => {
-    const record = localStorage.getItem(AUTH_KEY);
-    if (!record) return { ok: false, error: '本浏览器尚未设置管理员密码' };
+  useEffect(() => {
+    if (!authReady || isAdmin || !new URLSearchParams(window.location.search).has('admin')) return;
+    setAuthMode(adminExists === false ? 'setup' : 'login');
+  }, [adminExists, authReady, isAdmin]);
+
+  const setup = useCallback(async (password) => {
+    if (!authReady || adminExists !== false) {
+      return { ok: false, error: adminExists ? '管理员已存在，只能登录' : authError || '正在确认管理员状态' };
+    }
+    if (password.length < 8) return { ok: false, error: '密码至少需要 8 个字符' };
     try {
-      const { hash } = JSON.parse(record);
-      if (await hashPassword(password) !== hash) return { ok: false, error: '密码不正确' };
-      localStorage.setItem(SESSION_KEY, 'admin');
+      const { response, body } = await authRequest('/api/admin/register', {
+        method: 'POST', body: JSON.stringify({ password }),
+      });
+      if (!response.ok) {
+        if (response.status === 409 || body.code === 'ADMIN_ALREADY_EXISTS') {
+          setAdminExists(true);
+          setAuthMode('login');
+        }
+        return { ok: false, error: body.error || '创建管理员失败' };
+      }
+      localStorage.setItem(SESSION_KEY, body.token);
+      setAdminExists(true);
       setIsAdmin(true);
       setAuthMode(null);
       return { ok: true };
-    } catch {
-      return { ok: false, error: '管理员记录已损坏，请清理本站数据后重试' };
+    } catch (error) {
+      return { ok: false, error: error.message || '全局认证服务暂时不可用' };
+    }
+  }, [adminExists, authError, authReady]);
+
+  const login = useCallback(async (password) => {
+    try {
+      const { response, body } = await authRequest('/api/admin/login', {
+        method: 'POST', body: JSON.stringify({ password }),
+      });
+      if (!response.ok) {
+        if (response.status === 404 || body.code === 'ADMIN_NOT_FOUND') {
+          setAdminExists(false);
+          setAuthMode('setup');
+        }
+        return { ok: false, error: body.error || '登录失败' };
+      }
+      localStorage.setItem(SESSION_KEY, body.token);
+      setAdminExists(true);
+      setIsAdmin(true);
+      setAuthMode(null);
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, error: error.message || '全局认证服务暂时不可用' };
     }
   }, []);
 
@@ -156,8 +224,10 @@ export function useAdmin() {
   }, [isAdmin]);
 
   return {
-    isAdmin, editMode, authMode, hasPassword, setup, login, logout, toggleEdit,
-    showLogin: () => setAuthMode('login'), showSetup: () => setAuthMode('setup'), closeAuth: () => setAuthMode(null),
+    isAdmin, editMode, authMode, adminExists, authReady, authError, setup, login, logout, toggleEdit,
+    showLogin: () => setAuthMode(adminExists === false ? 'setup' : 'login'),
+    showSetup: () => { if (authReady && adminExists === false) setAuthMode('setup'); },
+    closeAuth: () => setAuthMode(null),
   };
 }
 
