@@ -1,8 +1,0 @@
-.custom-cursor {
-  position: fixed; pointer-events: none; z-index: var(--z-cursor);
-}
-.cursor-icon { display:block; font-size:28px; line-height:1; filter:drop-shadow(2px 2px 0 rgba(0,0,0,0.25)); }
-.cursor-icon.st-pointer { transform:scale(1.15) rotate(-10deg); }
-.cursor-icon.st-grabbing, .cursor-icon.st-move { transform:scale(1.1); }
-.cursor-img { width:32px; height:32px; object-fit:contain; image-rendering:pixelated; pointer-events:none; }
-.ink-particle { position:fixed; pointer-events:none; z-index:calc(var(--z-cursor)-1); border-radius:50%; animation:inkSplatter .6s ease-out forwards; }

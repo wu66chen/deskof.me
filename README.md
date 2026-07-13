@@ -1,89 +1,44 @@
-# 🖥️ deskof.me
+# deskof.me
 
-**Y2K 风格个人桌面作品网站** — 把你的作品集放进一个可爱的电脑桌面里。
+一个从零实现的 Y2K 手绘拼贴风个人桌面网站。访客像操作电脑一样浏览作品；管理员则可直接在桌面上编辑、保存并发布内容。
 
-![screenshot](docs/screenshot.png)
+## 使用方式
 
-## ✨ 功能
+- 双击桌面图标打开文件，右键可分享或查看属性。
+- 桌面空白处右键可打开 GitHub 与四页“桌面属性”。
+- 管理员入口不会出现在菜单中：3 秒内点击右下角时钟 5 次，或在网址后加 `?admin`。
+- 窄屏与触屏设备会自动切换为只读手账列表。
 
-- 🖥️ **完整的桌面隐喻** — 图标、文件夹、窗口、任务栏、开始菜单
-- 🎨 **Y2K 手绘拼贴风格** — 像素艺术 + 手绘 + 纸质手工质感
-- 🔐 **管理员系统** — 首次访问设密码 = 唯一管理员，访客只读
-- ✏️ **在线编辑** — 管理员可直接在网站上添加/删除/重命名/换图标
-- 📂 **多种文件类型** — 文件夹（普通/大型）、图片、视频、Markdown、链接
-- 🪄 **趣味交互** — 像素抖动、墨水飞溅粒子、壁纸视差、弹性动画
-- 🎯 **高度自定义** — 壁纸、图标、光标、桌面名称全部可配置
-- 📱 **零后端** — 纯前端 SPA，所有数据存 localStorage
-
-## 🚀 快速开始
+## 本地运行
 
 ```bash
-# 安装依赖
 npm install
-
-# 开发模式
 npm run dev
-
-# 构建
+npm run lint
 npm run build
-
-# 预览构建结果
-npm run preview
 ```
 
-## 📦 免费部署 (GitHub Pages)
+## 发布
 
-### 方式一：GitHub Actions（推荐，自动部署）
+站点通过 `npm run deploy` 发布到 `gh-pages` 分支。
 
-1. 在 GitHub 创建仓库 `deskof.me`
-2. 推送到 `main` 分支
-3. 在仓库 Settings → Pages → Source 选择 "GitHub Actions"
-4. 每次推送自动部署
+管理员也可在“站点设置 → 发布”中填写只对当前仓库有 Contents 读写权限的 Fine-grained token。发布时会同时更新源码分支的 `src/content.generated.js` 与线上分支的 `desk-data.json`，因此访客刷新页面即可看到新版本，不需要 workflow 权限。
 
-### 方式二：手动部署
+## 全新源码结构
 
-```bash
-npm run deploy
-```
-
-## 🔧 管理员使用
-
-1. **首次访问**：设置管理员密码
-2. **登录后**：点击 Start → 进入编辑模式，或桌面右键 → 进入编辑模式
-3. **编辑模式**：
-   - 拖拽图标重新排列
-   - 右键图标 → 重命名 / 更换图标 / 删除
-   - 桌面右键 → 新建各种文件
-   - Start → 站点设置 → 自定义壁纸、图标等
-4. **访客访问**：无需登录，只能浏览，不能修改
-
-## 🖼️ 自定义图像
-
-用 `docs/image-prompts.md` 中的提示词（适用于 Gemini-3-Pro-Image / GPT-Image-2）生成自定义图标和壁纸，然后在设置面板中替换。
-
-## 🛠️ 技术栈
-
-- React 19 + Vite 8
-- CSS3 (动画、渐变、自定义属性)
-- localStorage (数据持久化)
-- GitHub Pages (免费托管)
-
-## 📁 项目结构
-
-```
+```text
 src/
-├── components/
-│   ├── auth/          # 登录/注册界面
-│   ├── common/        # 光标、右键菜单、设置面板
-│   ├── desktop/       # 桌面、图标
-│   ├── taskbar/       # 任务栏、开始菜单
-│   └── window/        # 窗口系统、内容查看器
-├── config/            # 数据模型、默认配置
-├── hooks/             # 认证、拖拽、窗口管理、重命名
-├── styles/            # 主题 CSS
-└── utils/             # 工具函数
+├── App.jsx               # 桌面状态与交互编排
+├── Desktop.jsx           # 桌面、图标、装饰、移动端列表
+├── Windows.jsx           # 窗口系统与六类内容查看器
+├── Overlays.jsx          # 菜单、任务栏、认证、文件属性
+├── Properties.jsx        # 桌面属性、屏保、设置与光标气泡
+├── CustomCursor.jsx      # RAF 自定义光标
+├── data.js               # 默认内容与配置矩阵
+├── content.generated.js  # 发布后的公共桌面数据
+├── lib.js                # 文件树与分享工具
+├── useDesk.js            # 本地持久化、认证与 GitHub 发布
+└── styles.css            # 完整视觉、动效与响应式系统
 ```
 
-## 📄 License
-
-MIT
+产品规格见 [`docs/PRD v2.1.md`](docs/PRD%20v2.1.md)。
