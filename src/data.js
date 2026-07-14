@@ -1,5 +1,3 @@
-import { publishedDeskState } from './content.generated.js';
-
 const assetKeys = [
   'wallpaper', 'selectedTexture', 'taskbarBg', 'taskbarStartIcon', 'taskbarTaskBg',
   'startMenuBg', 'contextMenuBg', 'loginBg', 'loginLogo', 'loginButton',
@@ -143,7 +141,7 @@ export const DEFAULT_DECORATIONS = [
   { id: 'deco-sparkle', type: 'text', content: '✦ ･ﾟ: *✧･ﾟ:*', x: 760, y: 250, width: 210, height: 50, rotation: 6, opacity: 0.8, fontSize: 28, color: '#BF40BF', bgColor: 'transparent', fontFamily: 'var(--font-hand)', zIndex: 25000 },
 ];
 
-export const DEFAULT_STATE = publishedDeskState || {
+export const DEFAULT_STATE = {
   config: DEFAULT_CONFIG,
   items: DEFAULT_ITEMS,
   decorations: DEFAULT_DECORATIONS,
