@@ -41,7 +41,11 @@ function CustomCursor({ config, previewState }) {
   }, [previewState]);
   const active = previewState || state;
   const cursor = config.cursors[active] || config.cursors.default;
-  return <div className={`custom-cursor cursor-${active} ${visible ? 'is-visible' : ''}`} style={{ left: position.x - cursor.hotspotX, top: position.y - cursor.hotspotY }}>
+  const size = Math.max(16, Math.min(96, Number(config.cursorSize) || 32));
+  const hotspotScale = size / 32;
+  const hotspotX = (Number(cursor.hotspotX) || 0) * hotspotScale;
+  const hotspotY = (Number(cursor.hotspotY) || 0) * hotspotScale;
+  return <div className={`custom-cursor cursor-${active} ${visible ? 'is-visible' : ''}`} style={{ left: position.x - hotspotX, top: position.y - hotspotY, '--cursor-size': `${size}px`, '--cursor-emoji-size': `${Math.round(size * 0.9)}px` }}>
     {cursor.url ? <img src={cursor.url} alt="" draggable="false" /> : <span>{emojis[active] || '✏️'}</span>}
   </div>;
 }

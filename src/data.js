@@ -80,6 +80,7 @@ export const DEFAULT_CONFIG = {
     markdown: { w: 620, h: 500 }, link: { w: 380, h: 220 },
   },
   windowBackgrounds: {},
+  cursorSize: 32,
   cursors: Object.fromEntries(CURSOR_STATES.map(({ key }) => [key, { url: null, hotspotX: 4, hotspotY: 4 }])),
   cpuLabel: 'Creative Brain Core @ 100% 细节控',
   ramTags: ['手冲咖啡', '婴童鞋 AI'],
