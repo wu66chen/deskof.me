@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { DEFAULT_STATE } from './data';
 import { clone, mergeState } from './lib';
 
@@ -9,11 +9,36 @@ const SESSION_KEY = 'deskofme_global_session_v1';
 const TOKEN_KEY = 'deskofme_publish_token_v21';
 const AUTH_API_URL = (import.meta.env.VITE_AUTH_API_URL || '').replace(/\/$/, '');
 
+function readStorage(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function writeStorage(key, value) {
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function removeStorage(key) {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    // Storage can be unavailable in private or restricted visitor sessions.
+  }
+}
+
 function loadDesk() {
   try {
-    const saved = JSON.parse(localStorage.getItem(DESK_KEY));
+    const saved = JSON.parse(readStorage(DESK_KEY));
     if (saved?.config?.dataVersion < DEFAULT_STATE.config.dataVersion) {
-      localStorage.removeItem(DESK_KEY);
+      removeStorage(DESK_KEY);
       return clone(DEFAULT_STATE);
     }
     return mergeState(DEFAULT_STATE, saved);
@@ -24,6 +49,7 @@ function loadDesk() {
 
 export function useDeskState() {
   const [desk, setDesk] = useState(loadDesk);
+  const skipNextPersistence = useRef(true);
 
   useEffect(() => {
     let active = true;
@@ -31,16 +57,23 @@ export function useDeskState() {
       .then((response) => response.ok ? response.json() : null)
       .then((remote) => {
         if (!active || !remote?.config) return;
-        setDesk((current) => (remote.config.dataVersion || 0) > (current.config.dataVersion || 0)
-          ? mergeState(DEFAULT_STATE, remote)
-          : current);
+        setDesk((current) => {
+          if ((remote.config.dataVersion || 0) <= (current.config.dataVersion || 0)) return current;
+          skipNextPersistence.current = true;
+          removeStorage(DESK_KEY);
+          return mergeState(DEFAULT_STATE, remote);
+        });
       })
       .catch(() => {});
     return () => { active = false; };
   }, []);
 
   useEffect(() => {
-    localStorage.setItem(DESK_KEY, JSON.stringify(desk));
+    if (skipNextPersistence.current) {
+      skipNextPersistence.current = false;
+      return;
+    }
+    if (!writeStorage(DESK_KEY, JSON.stringify(desk))) removeStorage(DESK_KEY);
   }, [desk]);
 
   const updateConfig = useCallback((next) => {
@@ -126,9 +159,9 @@ export function useAdmin() {
 
   useEffect(() => {
     let active = true;
-    localStorage.removeItem(LEGACY_AUTH_KEY);
-    localStorage.removeItem(LEGACY_SESSION_KEY);
-    const token = localStorage.getItem(SESSION_KEY);
+    removeStorage(LEGACY_AUTH_KEY);
+    removeStorage(LEGACY_SESSION_KEY);
+    const token = readStorage(SESSION_KEY);
 
     const initialize = async () => {
       try {
@@ -143,12 +176,12 @@ export function useAdmin() {
           });
           if (!active) return;
           if (session.response.ok && session.body.authenticated) setIsAdmin(true);
-          else localStorage.removeItem(SESSION_KEY);
+          else removeStorage(SESSION_KEY);
         }
         setAuthError('');
       } catch (error) {
         if (!active) return;
-        localStorage.removeItem(SESSION_KEY);
+        removeStorage(SESSION_KEY);
         setIsAdmin(false);
         setAdminExists(null);
         setAuthError(error.message || '全局认证服务暂时不可用');
@@ -181,7 +214,7 @@ export function useAdmin() {
         }
         return { ok: false, error: body.error || '创建管理员失败' };
       }
-      localStorage.setItem(SESSION_KEY, body.token);
+      writeStorage(SESSION_KEY, body.token);
       setAdminExists(true);
       setIsAdmin(true);
       setAuthMode(null);
@@ -203,7 +236,7 @@ export function useAdmin() {
         }
         return { ok: false, error: body.error || '登录失败' };
       }
-      localStorage.setItem(SESSION_KEY, body.token);
+      writeStorage(SESSION_KEY, body.token);
       setAdminExists(true);
       setIsAdmin(true);
       setAuthMode(null);
@@ -214,7 +247,7 @@ export function useAdmin() {
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem(SESSION_KEY);
+    removeStorage(SESSION_KEY);
     setIsAdmin(false);
     setEditMode(false);
   }, []);
@@ -232,11 +265,11 @@ export function useAdmin() {
 }
 
 export function usePublishToken() {
-  const [token, setTokenState] = useState(() => localStorage.getItem(TOKEN_KEY) || '');
+  const [token, setTokenState] = useState(() => readStorage(TOKEN_KEY) || '');
   const setToken = useCallback((value) => {
     setTokenState(value);
-    if (value) localStorage.setItem(TOKEN_KEY, value);
-    else localStorage.removeItem(TOKEN_KEY);
+    if (value) writeStorage(TOKEN_KEY, value);
+    else removeStorage(TOKEN_KEY);
   }, []);
   return [token, setToken];
 }
